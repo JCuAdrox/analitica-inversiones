@@ -23,7 +23,7 @@ SELECT
     c.id_tipo,
     c.ultima_fecha AS fecha,
     b.banca,
-    p.perfil_riesgo,
+    COALESCE(p.perfil_riesgo, 'SIN INFORMACION') AS perfil_riesgo,
     m.macroactivo,
     m.cod_activo,
     m.activo,
