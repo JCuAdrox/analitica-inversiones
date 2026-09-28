@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portafolio de clientes</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6f8; color: #1b2733; }
+    header { background: #1b2733; color: #fff; padding: 16px 32px; }
+    header small { opacity: .7; }
+    main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    select { padding: 8px 12px; font-size: 15px; width: 100%; max-width: 520px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+    .kpi, .card { background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .kpi span { display: block; font-size: 12px; color: #667; text-transform: uppercase; }
+    .kpi strong { font-size: 19px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { overflow-x: auto; }
+    h2 { margin: 30px 0 12px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e5e9ed; }
+    .num { text-align: right; }
+    .aviso { background: #fff7e0; border-left: 4px solid #e0a800; padding: 10px 14px; margin-top: 16px; border-radius: 4px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Analitica de inversiones</strong><br>
+    <small>Portafolio local (COP) e internacional (USD) por cliente, a la ultima fecha disponible</small>
+  </header>
+  <main>
+  {% if sin_datos %}
+    <div class="aviso">No hay clientes. Ejecuta primero <code>python scripts/run_sql.py</code>.</div>
+  {% else %}
+    <form method="get">
+      <label for="cliente"><strong>Cliente</strong></label><br>
+      <select id="cliente" name="id_cliente" onchange="this.form.submit()">
+        {% for o in opciones %}
+          <option value="{{ o.id }}" {% if o.id == seleccionado %}selected{% endif %}>{{ o.etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </form>
+
+    {% if resumen.id_tipo == "TRUNCADO" %}
+      <div class="aviso">El ID de este cliente llego truncado por Excel (notacion cientifica). Se usa como identificador, pero no es posible cruzarlo con el portafolio internacional.</div>
+    {% endif %}
+
+    <div class="kpis">
+      {% for etiqueta, valor in kpis %}
+        <div class="kpi"><span>{{ etiqueta }}</span><strong>{{ valor }}</strong></div>
+      {% endfor %}
+    </div>
+
+    <h2>Portafolio local (COP), al {{ resumen.fecha_cop|date:"d/m/Y" }}</h2>
+    <div class="grid">
+      <div class="card">{{ graf_cop_dona|safe }}</div>
+      <div class="card">{{ graf_cop_barras|safe }}</div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <table>
+        <tr><th>Activo</th><th>Macroactivo</th><th class="num">Valor (COP)</th><th class="num">%</th></tr>
+        {% for f in tabla_cop %}
+          <tr><td>{{ f.activo }}</td><td>{{ f.clase }}</td><td class="num">{{ f.valor }}</td><td class="num">{{ f.pct }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <h2>Portafolio internacional (USD){% if tiene_usd %}, al {{ resumen.fecha_usd|date:"d/m/Y" }}{% endif %}</h2>
+    {% if tiene_usd %}
+      <div class="grid">
+        <div class="card">{{ graf_usd_dona|safe }}</div>
+        <div class="card">{{ graf_usd_barras|safe }}</div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <table>
+          <tr><th>Activo</th><th>Tipo</th><th class="num">Cantidad</th><th class="num">Valor (USD)</th><th class="num">%</th><th>Vence</th><th class="num">Cupon %</th></tr>
+          {% for f in tabla_usd %}
+            <tr><td>{{ f.nombre }}</td><td>{{ f.tipo }}</td><td class="num">{{ f.cantidad }}</td><td class="num">{{ f.valor }}</td><td class="num">{{ f.pct }}</td><td>{{ f.vence }}</td><td class="num">{{ f.cupon }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% else %}
+      <div class="aviso">Este cliente no tiene portafolio internacional registrado.</div>
+    {% endif %}
+  {% endif %}
+  </main>
+</body>
+</html>
