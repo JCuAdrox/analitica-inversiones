@@ -14,7 +14,7 @@ def _fmt(numero, decimales=0):
 
 
 def _html(fig, con_js):
-    fig.update_layout(margin=dict(l=10, r=10, t=50, b=10), height=380)
+    fig.update_layout(margin=dict(l=10, r=10, t=50, b=10), height=380, separators=",.")
     return fig.to_html(
         full_html=False, include_plotlyjs="cdn" if con_js else False
     )
@@ -27,14 +27,17 @@ def _dona(filas, titulo, con_js=False):
     return _html(fig, con_js)
 
 
-def _barras(filas, columna_y, columna_x, columna_pct, titulo):
+def _barras(filas, columna_y, columna_x, columna_pct, titulo, etiqueta_x):
     df = pd.DataFrame(filas).head(10)
     df[columna_y] = df[columna_y].astype(str).str.slice(0, 38)
+    df["etiqueta"] = df[columna_pct].map(lambda p: _fmt(p, 1) + " %")
     fig = px.bar(
-        df, x=columna_x, y=columna_y, orientation="h", title=titulo, text=columna_pct
+        df, x=columna_x, y=columna_y, orientation="h", title=titulo,
+        text="etiqueta", labels={columna_x: etiqueta_x, columna_y: ""},
     )
     fig.update_yaxes(autorange="reversed", title=None)
-    fig.update_traces(texttemplate="%{text} %", textposition="outside")
+    fig.update_xaxes(range=[0, float(df[columna_x].max()) * 1.25])
+    fig.update_traces(textposition="outside", cliponaxis=False)
     return _html(fig, False)
 
 
@@ -90,7 +93,8 @@ def dashboard(request):
             cop_clase, "Portafolio local por macroactivo (COP)", con_js=True
         ),
         "graf_cop_barras": _barras(
-            cop_det, "activo", "aba", "pct", "Principales posiciones locales (COP)"
+            cop_det, "activo", "aba", "pct",
+            "Principales posiciones locales (COP)", "Valor (COP)"
         ),
         "tabla_cop": [
             {
@@ -117,6 +121,7 @@ def dashboard(request):
                     "valor_usd",
                     "pct",
                     "Principales posiciones internacionales (USD)",
+                    "Valor (USD)",
                 ),
                 "tabla_usd": [
                     {

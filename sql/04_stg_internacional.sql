@@ -10,8 +10,8 @@ SELECT
     NULLIF(NULLIF(TRIM(simbol),             ''), 'None') AS simbolo,
     NULLIF(NULLIF(TRIM(cusip),              ''), 'None') AS cusip,
     NULLIF(NULLIF(TRIM(isin),               ''), 'None') AS isin,
-    NULLIF(NULLIF(REGEXP_REPLACE(TRIM(nombre_activo), '\s+', ' ', 'g'), ''), 'None')
-                                                         AS nombre_activo,
+    NULLIF(NULLIF(TRIM(REGEXP_REPLACE(REGEXP_REPLACE(TRIM(nombre_activo), 'ISIN#\S*', '', 'g'),
+        '\s+', ' ', 'g')), ''), 'None')                  AS nombre_activo,
     NULLIF(NULLIF(TRIM(cantidad),           ''), 'None') AS cantidad,
     NULLIF(NULLIF(TRIM(valor_mercado),      ''), 'None') AS valor_mercado,
     NULLIF(NULLIF(TRIM(fecha_vencimiento),  ''), 'None') AS fecha_vencimiento,

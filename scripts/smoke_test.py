@@ -24,7 +24,7 @@ CASOS = [
     ("10014876058", ["Personal", "SIN DEFINIR", "8.704.400", "2.249.378",
                      "8.707.092.528", "99,9 %"]),
     ("10032184607", ["MODERADO", "94,5 %", "SIN CATALOGO", "SIN CODIGO"]),
-    ("1.00901E+11", ["Empresas", "CONSERVADOR", "llego truncado",
+    ("1.00901E+11", ["Empresas", "CONSERVADOR", "llegó truncado",
                      "no tiene portafolio internacional"]),
 ]
 

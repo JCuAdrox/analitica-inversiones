@@ -26,8 +26,8 @@
 </head>
 <body>
   <header>
-    <strong>Analitica de inversiones</strong><br>
-    <small>Portafolio local (COP) e internacional (USD) por cliente, a la ultima fecha disponible</small>
+    <strong>Analítica de inversiones</strong><br>
+    <small>Portafolio local (COP) e internacional (USD) por cliente, a la última fecha disponible</small>
   </header>
   <main>
   {% if sin_datos %}
@@ -43,7 +43,7 @@
     </form>
 
     {% if resumen.id_tipo == "TRUNCADO" %}
-      <div class="aviso">El ID de este cliente llego truncado por Excel (notacion cientifica). Se usa como identificador, pero no es posible cruzarlo con el portafolio internacional.</div>
+      <div class="aviso">El ID de este cliente llegó truncado por Excel (notacion científica). Se usa como identificador, pero no es posible cruzarlo con el portafolio internacional.</div>
     {% endif %}
 
     <div class="kpis">
@@ -74,7 +74,7 @@
       </div>
       <div class="card" style="margin-top:16px">
         <table>
-          <tr><th>Activo</th><th>Tipo</th><th class="num">Cantidad</th><th class="num">Valor (USD)</th><th class="num">%</th><th>Vence</th><th class="num">Cupon %</th></tr>
+          <tr><th>Activo</th><th>Tipo</th><th class="num">Cantidad</th><th class="num">Valor (USD)</th><th class="num">%</th><th>Vence</th><th class="num">Cupón %</th></tr>
           {% for f in tabla_usd %}
             <tr><td>{{ f.nombre }}</td><td>{{ f.tipo }}</td><td class="num">{{ f.cantidad }}</td><td class="num">{{ f.valor }}</td><td class="num">{{ f.pct }}</td><td>{{ f.vence }}</td><td class="num">{{ f.cupon }}</td></tr>
           {% endfor %}
