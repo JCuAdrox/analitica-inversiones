@@ -8,7 +8,7 @@ CONSULTAS = [
         "visualizacion": "tabla",
         "sql": """
             SELECT id_cliente, id_tipo, banca, perfil_riesgo, tiene_usd
-            FROM stg.resumen_cliente
+            FROM app.resumen_cliente
             ORDER BY total_consolidado_cop DESC NULLS LAST, aba_cop DESC
         """,
     },
@@ -19,7 +19,7 @@ CONSULTAS = [
         "visualizacion": "tabla",
         "sql": """
             SELECT *
-            FROM stg.resumen_cliente
+            FROM app.resumen_cliente
             WHERE id_cliente = %(id_cliente)s
         """,
     },
@@ -32,7 +32,7 @@ CONSULTAS = [
             SELECT macroactivo AS clase,
                    SUM(aba) AS valor,
                    ROUND(100 * SUM(aba) / MAX(aba_total), 2) AS pct
-            FROM stg.portafolio_cop_actual
+            FROM app.portafolio_cop_actual
             WHERE id_cliente = %(id_cliente)s
             GROUP BY macroactivo
             ORDER BY valor DESC
@@ -45,7 +45,7 @@ CONSULTAS = [
         "visualizacion": "barras",
         "sql": """
             SELECT activo, macroactivo, aba, pct
-            FROM stg.portafolio_cop_actual
+            FROM app.portafolio_cop_actual
             WHERE id_cliente = %(id_cliente)s
             ORDER BY aba DESC
         """,
@@ -59,7 +59,7 @@ CONSULTAS = [
             SELECT tipo_activo AS clase,
                    SUM(valor_usd) AS valor,
                    ROUND(100 * SUM(valor_usd) / MAX(valor_total_usd), 2) AS pct
-            FROM stg.portafolio_usd_actual
+            FROM app.portafolio_usd_actual
             WHERE id_cliente = %(id_cliente)s
             GROUP BY tipo_activo
             ORDER BY valor DESC
@@ -73,7 +73,7 @@ CONSULTAS = [
         "sql": """
             SELECT nombre_activo, tipo_activo, cantidad, valor_usd, pct,
                    fecha_vencimiento, tasa_cupon
-            FROM stg.portafolio_usd_actual
+            FROM app.portafolio_usd_actual
             WHERE id_cliente = %(id_cliente)s
             ORDER BY valor_usd DESC
         """,
@@ -84,7 +84,7 @@ CONSULTAS = [
         "descripcion": "Perfil inferido, coherencia, segmento y oportunidades de cada cliente.",
         "visualizacion": "tabla",
         "sql": """
-            SELECT * FROM stg.modelo_cliente ORDER BY total_cop DESC
+            SELECT * FROM app.modelo_cliente ORDER BY total_cop DESC
         """,
     },
     {
@@ -99,7 +99,7 @@ CONSULTAS = [
                    ROUND(AVG(hhi)::numeric, 2)               AS hhi,
                    SUM(total_cop)                            AS total_cop,
                    SUM(n_oportunidades)                      AS oportunidades
-            FROM stg.modelo_cliente
+            FROM app.modelo_cliente
             GROUP BY segmento
             ORDER BY total_cop DESC
         """,
@@ -110,7 +110,7 @@ CONSULTAS = [
         "descripcion": "Todas las oportunidades comerciales, por prioridad y monto.",
         "visualizacion": "tabla",
         "sql": """
-            SELECT * FROM stg.oportunidades
+            SELECT * FROM app.oportunidades
             ORDER BY orden_prioridad, monto_cop DESC
         """,
     },
@@ -120,7 +120,7 @@ CONSULTAS = [
         "descripcion": "Resultado del modelo para el cliente seleccionado.",
         "visualizacion": "tabla",
         "sql": """
-            SELECT * FROM stg.modelo_cliente WHERE id_cliente = %(id_cliente)s
+            SELECT * FROM app.modelo_cliente WHERE id_cliente = %(id_cliente)s
         """,
     },
     {
@@ -130,7 +130,7 @@ CONSULTAS = [
         "visualizacion": "tabla",
         "sql": """
             SELECT id_cliente, segmento, tipo, prioridad, monto_cop, detalle
-            FROM stg.oportunidades
+            FROM app.oportunidades
             WHERE id_cliente = %(id_cliente)s
             ORDER BY orden_prioridad, monto_cop DESC
         """,
