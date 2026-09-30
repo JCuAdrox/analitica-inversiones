@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 SALIDA = ROOT / "modelo" / "mapeo_riesgo.csv"
-MERCADO = ROOT / "data" / "mercado_precios.csv"
+MERCADO = ROOT / "mercado" / "mercado_precios.csv"
 FECHA_REF = date(2024, 5, 30)
 
 ACCIONES_LOCALES = {
@@ -138,7 +138,9 @@ def main():
             df.at[i, "fuente"] = "proxy"
             df.at[i, "justificacion"] = r.justificacion + " (serie no disponible, se usa ACWI)"
 
-    df.drop(columns="valor").to_csv(SALIDA, index=False, encoding="utf-8")
+    (df.drop(columns="valor")
+       .sort_values(["universo", "clave"])
+       .to_csv(SALIDA, index=False, encoding="utf-8"))
 
     print(f"Activos mapeados: {len(df)}  ->  {SALIDA}\n")
     for universo, g in df.groupby("universo"):

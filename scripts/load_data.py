@@ -47,10 +47,13 @@ def cargar_tabla(engine, nombre: str) -> tuple[int, int]:
     df = leer_csv(ruta)
     df.columns = [c.strip().lower() for c in df.columns]
 
+    with engine.begin() as conn:
+        conn.execute(text(f'DROP TABLE IF EXISTS "{nombre}" CASCADE'))
+
     df.to_sql(
         nombre,
         engine,
-        if_exists="replace",
+        if_exists="fail",
         index=False,
         dtype={col: Text() for col in df.columns},
         chunksize=2000,
@@ -59,7 +62,6 @@ def cargar_tabla(engine, nombre: str) -> tuple[int, int]:
     with engine.connect() as conn:
         en_bd = conn.execute(text(f"SELECT COUNT(*) FROM {nombre}")).scalar()
     return len(df), en_bd
-
 
 def main():
     engine = get_engine()

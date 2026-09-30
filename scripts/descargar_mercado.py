@@ -7,7 +7,7 @@ import yfinance as yf
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
-SALIDA = ROOT / "data" / "mercado_precios.csv"
+SALIDA = ROOT / "mercado" / "mercado_precios.csv"
 INICIO, FIN = "2023-06-01", "2024-06-15"
 
 # nombre interno: tickers candidatos en Yahoo (se usa el primero que funcione)

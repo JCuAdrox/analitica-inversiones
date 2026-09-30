@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
 ROOT = Path(__file__).resolve().parent.parent
-MERCADO = ROOT / "data" / "mercado_precios.csv"
+MERCADO = ROOT / "mercado" / "mercado_precios.csv"
 MAPEO = ROOT / "modelo" / "mapeo_riesgo.csv"
 FECHA_REF = "2024-05-30"
 LOCALES = {

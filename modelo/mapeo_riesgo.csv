@@ -1,0 +1,98 @@
+universo,clave,clase_riesgo,proxy,vol_anual_supuesta,fuente,justificacion
+COP,CDT BANCOLOMBIA B360|Renta Fija,Deposito a plazo,,0.0,supuesto,"Tasa fija mantenida a vencimiento, sin volatilidad de mercado relevante"
+COP,CDT TUYA TF B360|Renta Fija,Deposito a plazo,,0.0,supuesto,"Tasa fija mantenida a vencimiento, sin volatilidad de mercado relevante"
+COP,CELSIA|Renta Variable,Renta variable local,CELSIA,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,CEMARGOS|Renta Variable,Renta variable local,CEMARGOS,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,ECOPETROL|Renta Variable,Renta variable local,ECOPETROL,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,ETB|Renta Variable,Renta variable local,ETB,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,Fiducuenta|FICs,Liquidez (FIC),,0.005,supuesto,"Fondo de liquidez con volatilidad muy baja, validar con rentabilidades publicadas"
+COP,Fidurenta|FICs,Renta fija (FIC),,0.02,supuesto,"Fondo de renta fija con volatilidad supuesta de 2 % anual, validar"
+COP,GRUBOLIVAR|Renta Variable,Renta variable local,GRUBOLIVAR,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,ISA|Renta Variable,Renta variable local,ISA,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,PFBCOLOM|Renta Variable,Renta variable local,PFBCOLOM,,proxy,"Serie aproximada con el ADR CIB por la TRM, porque Yahoo no tiene la local"
+COP,PFCORFICOL|Renta Variable,Renta variable local,PFCORFICOL,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,PFGRUPSURA|Renta Variable,Renta variable local,PFGRUPSURA,,serie directa,Precio de mercado de la accion en la Bolsa de Valores de Colombia
+COP,Plan Semilla|FICs,Renta fija (FIC),,0.02,supuesto,"Fondo de renta fija con volatilidad supuesta de 2 % anual, validar"
+COP,Renta Liquidez|FICs,Liquidez (FIC),,0.005,supuesto,"Fondo de liquidez con volatilidad muy baja, validar con rentabilidades publicadas"
+COP,SIN CATALOGO|Renta Variable,Renta variable local sin identificar,COLCAP,,proxy,"Activo sin codigo, se asume el comportamiento del indice local"
+COP,SIN CODIGO|FICs,Renta fija (FIC),,0.02,supuesto,"Fondo de renta fija con volatilidad supuesta de 2 % anual, validar"
+COP,SIN CODIGO|Renta Variable,Renta variable local sin identificar,COLCAP,,proxy,"Activo sin codigo, se asume el comportamiento del indice local"
+COP,Sura Credito Privado|FICs,Renta fija (FIC),,0.02,supuesto,"Fondo de renta fija con volatilidad supuesta de 2 % anual, validar"
+USD,ADVANCED MICRO DEVICES INC COM,Accion,AMD,,serie directa,Precio de mercado en Yahoo Finance
+USD,ALPHABET INC CAP STK CL C,Accion,GOOG,,serie directa,Precio de mercado en Yahoo Finance
+USD,AMAZON COM INC COM,Accion,AMZN,,serie directa,Precio de mercado en Yahoo Finance
+USD,APPLE INC COM,Accion,AAPL,,serie directa,Precio de mercado en Yahoo Finance
+USD,BANCO DE BOGOTA SA REG S BOND 6.250% 05/12/26 B/E DTD 05/12/16,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANCO GNB SUDAMERIS REG S BOND 7.051% 04/03/27 B/E DTD 04/03/17 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANCO GNB SUDAMERIS REG S BOND 7.500% 04/16/31 REG DTD 04/16/21 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANCOLOMBIA PANAMA SA 5.650% 01/24/25 REG DTD 01/24/23,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANCOLOMBIA PANAMA SA BOND 6.100% 11/13/24 REG DTD 11/09/23,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANCOLOMBIA PUERTO RICO INTL INC 5.500% 02/18/25 REG DTD 02/16/23,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANISTMO S A MEDIUM TERM NOTE 6.250% 06/04/25 REG DTD 04/12/23,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANISTMO S A MEDIUM TERM NOTES 6.250% 06/19/25 REG DTD 12/19/23,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BANISTMO SA REG S BOND 4.250% 07/31/27 B/E DTD 07/31/20 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BERKSHIRE HATHAWAY INC DEL CL B NEW,Accion,BRK B,,serie directa,Precio de mercado en Yahoo Finance
+USD,BGF CONTINENTAL EUROPEAN FLEXIBLE FUND CLASS A2 (HEDGED) (USD),Fondo de renta variable Europa,VGK,,proxy,"Fondo de acciones europeas, se usa el ETF de Europa"
+USD,BGF FIXED INCOME GLOBAL OPPORTUNITIES FUND CLASS A2 (USD),Fondo de renta fija,AGG,,proxy,"Fondo de renta fija global, se usa el indice agregado de bonos de EEUU"
+USD,BGF GLOBAL ALLOCATION FUND CLASS A2 (USD),Fondo mixto,ACWI:0.6|AGG:0.4,,proxy,"Fondo multiactivo, mezcla estandar de 60 % acciones y 40 % bonos"
+USD,BGF GLOBAL MULTI ASSET INCOME FUND CLASS A2 (USD),Fondo mixto,ACWI:0.6|AGG:0.4,,proxy,"Fondo multiactivo, mezcla estandar de 60 % acciones y 40 % bonos"
+USD,BGF USD SHORT DURATION BOND FUND (USD) CLASS A2,Fondo de renta fija corto plazo,SHY,,proxy,"Fondo de bonos de corta duracion, ETF de Tesoros a 1 a 3 anos"
+USD,BLACKROCK MANAGED INDEX PORTFOLIO GROWTH FUND CLASS A2 (HDG) (USD),Fondo mixto,ACWI:0.8|AGG:0.2,,proxy,"Fondo de portafolios indexados, mezcla segun su perfil moderado o de crecimiento"
+USD,BLACKROCK MANAGED INDEX PORTFOLIOS - MODERATE HEDGED FD CL A2 (USD)(HDG),Fondo mixto,ACWI:0.5|AGG:0.5,,proxy,"Fondo de portafolios indexados, mezcla segun su perfil moderado o de crecimiento"
+USD,BLOCK INC CL A,Accion,SQ,,serie directa,Precio de mercado en Yahoo Finance
+USD,BNP PARIBAS CORP & INSTL 18M TWIN-WIN LKD TO INDU NDX SPX 0.000% 09/15/25 REG DTD 03/15/24,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,BNP PARIBAS ISSUANCE B V LKD TO DJ INDUSTR AVERAGE NASDAQ 100 S&P 500 0.000% 12/09/24 REG DTD 06/09/23,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,BNP PARIBAS LNKD TO NDX SPX INDU 0.000% 09/16/24 REG DTD 03/16/23,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,BNP PARIBAS MEDIUM TERM NTS LKD TO INDU NDX & SPX 0.000% 10/23/25 REG DTD 04/23/24,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,BNY MELLON US DOLLAR LIQD SERV,Liquidez USD,,0.0,supuesto,Fondo de liquidez en dolares
+USD,BOGOTA DISTRITO CAPITAL REG S 9.750% 07/26/28 B/E DTD 07/26/07 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,BRASKEM IDESA SAPI REG S BOND 7.450% 11/15/29 B/E DTD 12/02/19 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,CASH,Liquidez USD,,0.0,supuesto,Fondo de liquidez en dolares
+USD,CHARGEPOINT HLDGS INC CL A,Accion,CHPT,,serie directa,Precio de mercado en Yahoo Finance
+USD,CITIFIRST AUTOCALL NTS LKD TO DJI NDX & SPX 0.000% 06/09/26 REG DTD 06/09/23,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,CITIGROUP INC COM NEW,Accion,C,,serie directa,Precio de mercado en Yahoo Finance
+USD,COLOMBIA TELECOMUNICACIONES SA ESP BIC REG S BOND 4.950% 07/17/30 B/E DTD 07/17/20 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,DIREXION SHS ETF TR DAILY SEMICONDUCTOR BULL 3X SHS,ETF,SOXL,,serie directa,Precio de mercado en Yahoo Finance
+USD,DISNEY WALT CO DISNEY COM,Accion,DIS,,serie directa,Precio de mercado en Yahoo Finance
+USD,ECOPETROL S A NT 8.875% 01/13/33 REG DTD 01/13/23 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,EMPRESAS PUBLIC MEDELLIN LOCAL AUTHORITY 4.375% 02/15/31 B/E DTD 07/15/20 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
+USD,FRANKLIN TECHNOLOGY FUND CLASS A (ACC),Fondo de renta variable tecnologia,QQQ,,proxy,"Fondo tecnologico, se usa el Nasdaq 100"
+USD,FRANKLIN U.S. OPPORTUNITIES FUND CLASS A (ACC)(USD),Fondo de renta variable EEUU,SPY,,proxy,"Fondo de acciones estadounidenses, se usa el S&P 500"
+USD,FTGF BRANDYWINE GLOBAL INCOME OPTIMISER FUND CLASS A (ACC)(USD),Fondo de renta fija,AGG,,proxy,"Fondo de renta fija global, se usa el indice agregado de bonos de EEUU"
+USD,FTGF CLEARBRIDGE INFRASTRUCTURE VALUE FUND CLASS A (HDG)(ACC)(USD),Fondo de renta variable global,ACWI,,proxy,"Fondo de acciones globales, se usa el indice mundial de acciones"
+USD,ISHARES IV PLC - ISHARES EDGE MSCI WORLD QUALITY FACTOR UCITS ETF ACCUM SHS,ETF,ISQWF,,serie directa,Precio de mercado en Yahoo Finance
+USD,ISHARES IV PLC - ISHARES USD SHORT DURATION CORP BOND UCITS ETF ACCUM SHS,ETF,ISVQF,,serie directa,Precio de mercado en Yahoo Finance
+USD,ISHARES TR MSCI EMERGING MKTS INDEX FD,ETF,EEM,,serie directa,Precio de mercado en Yahoo Finance
+USD,ISHARES V PLC - ISHARES S&P 500 HEALTH CARE SECTOR UCITS ETF ACCUM PTG,ETF,ISVFF,,serie directa,Precio de mercado en Yahoo Finance
+USD,ISHARES VII PLC - ISHARES USD TREASURY BOND 7-10YR UCITS ETF USD (ACC) ACCUM,ETF,ISVIF,,serie directa,Precio de mercado en Yahoo Finance
+USD,ISHARES VII PLC IBOXX USD 3-7YR TREASURY BD UCITS ETF,ETF,ISZXF,,serie directa,Precio de mercado en Yahoo Finance
+USD,JPMORGAN INCOME FUND CLASS A (ACC)(USD),Fondo de renta fija,AGG,,proxy,"Fondo de renta fija global, se usa el indice agregado de bonos de EEUU"
+USD,JPMORGAN U.S. SELECT EQUITY PLUS FUND CLASS A (ACC)(USD),Fondo de renta variable EEUU,SPY,,proxy,"Fondo de acciones estadounidenses, se usa el S&P 500"
+USD,LLOYDS BANKING GROUP PLC SPONS ADR,Accion,LYG,,serie directa,Precio de mercado en Yahoo Finance
+USD,META PLATFORMS INC CL A,Accion,META,,serie directa,Precio de mercado en Yahoo Finance
+USD,NETFLIX INC COM,ETF,NFLX,,serie directa,Precio de mercado en Yahoo Finance
+USD,NINETY ONE GSF GLOBAL FRANCHISE FUND CLASS A (ACC)(USD),Fondo de renta variable global,ACWI,,proxy,"Fondo de acciones globales, se usa el indice mundial de acciones"
+USD,NINETY ONE GSF GLOBAL MULTI-ASSET INCOME FUND CLASS A (ACC)(USD),Fondo mixto,ACWI:0.6|AGG:0.4,,proxy,"Fondo multiactivo, mezcla estandar de 60 % acciones y 40 % bonos"
+USD,NINETY ONE GSF GLOBAL MULTI-ASSET INCOME FUND CLASS A (INC)(USD),Fondo mixto,ACWI:0.6|AGG:0.4,,proxy,"Fondo multiactivo, mezcla estandar de 60 % acciones y 40 % bonos"
+USD,PALANTIR TECHNOLOGIES INC CL A,Accion,PLTR,,serie directa,Precio de mercado en Yahoo Finance
+USD,PAYPAL HLDGS INC COM,Accion,PYPL,,serie directa,Precio de mercado en Yahoo Finance
+USD,PETROLEO BRASILEIRO SA PETROBRAS SPONSORED ADR,Accion,PBR,,serie directa,Precio de mercado en Yahoo Finance
+USD,PIMCO INCOME FUND CLASS E (ACC)(USD),Fondo de renta fija,AGG,,proxy,"Fondo de renta fija global, se usa el indice agregado de bonos de EEUU"
+USD,QUANTUMSCAPE CORP CL A,Accion,QS,,serie directa,Precio de mercado en Yahoo Finance
+USD,SCHRODER ISF ASIAN OPPORTUNITIES FUND CLASS A1 (ACC),Fondo de renta variable emergente,EEM,,proxy,"Fondo de acciones de Asia o emergentes, se usa el ETF de mercados emergentes"
+USD,SCHRODER ISF EMERGING ASIA FUND CLASS A (USD),Fondo de renta variable emergente,EEM,,proxy,"Fondo de acciones de Asia o emergentes, se usa el ETF de mercados emergentes"
+USD,SCHRODER ISF SUSTAINABLE GROWTH FUND CLASS A (ACC)(USD),Fondo de renta variable global,ACWI,,proxy,"Fondo de acciones globales, se usa el indice mundial de acciones"
+USD,SELECT SECTOR SPDR TR FINANCIAL,ETF,XLF,,serie directa,Precio de mercado en Yahoo Finance
+USD,SELECT SECTOR SPDR TR MATLS,ETF,XLB,,serie directa,Precio de mercado en Yahoo Finance
+USD,SOFI TECHNOLOGIES INC COM,Accion,SOFI,,serie directa,Precio de mercado en Yahoo Finance
+USD,UBS AG LKD TO INDU SPX NDX 11.200% 06/06/24 REG DTD 12/07/22,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,UBS AG LONDON LNKD TO SPX NDX INDU 0.000% 06/06/25 REG DTD 12/07/23,Nota estructurada,SPY,,proxy,"Ligada a indices accionarios de EEUU, se usa SPY como supuesto conservador sin modelar barreras ni capital protegido"
+USD,UNITED STATES TREAS NTS 1.500% 02/15/25 B/E DTD 02/15/22,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,UNITED STATES TREAS NTS 1.625% 02/15/26 B/E DTD 02/15/16,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,UNITED STATES TREAS NTS 1.750% 03/15/25 B/E DTD 03/15/22,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,UNITED STATES TREAS NTS 3.875% 03/31/25 B/E DTD 03/31/23,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,UNITED STATES TREAS NTS 4.625% 11/15/26 B/E DTD 11/15/23,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,UNITED STATES TREAS NTS 5.000% 10/31/25 B/E DTD 10/31/23,Bono del Tesoro de EEUU,SHY,,proxy,"ETF de Tesoros segun el vencimiento restante (hasta 3 anos, SHY; mas, AGG)"
+USD,VANGUARD INTL EQUITY INDEX FDS FTSE EUROPE ETF,ETF,VGK,,serie directa,Precio de mercado en Yahoo Finance
+USD,VANGUARD SCOTTSDALE FDS VANGUARD SHORT-TERM TREAS INDEX FD,ETF,VGSH,,serie directa,Precio de mercado en Yahoo Finance
+USD,VTR COMUNICACIONES SPA REG S BOND 5.125% 01/15/28 B/E DTD 07/01/20 CLB,Bono corporativo emergente,EMB,,proxy,"ETF de bonos emergentes en dolares, por ser emisores colombianos y latinoamericanos"
