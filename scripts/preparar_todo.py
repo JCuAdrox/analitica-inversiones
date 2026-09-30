@@ -1,5 +1,6 @@
 """Prepara el proyecto completo en orden y termina verificando con el smoke test.
 
+
 Uso:
     python scripts/preparar_todo.py                      (usa la foto de mercado del repo)
     python scripts/preparar_todo.py --descargar-mercado  (vuelve a descargar precios)
