@@ -27,7 +27,7 @@ CASOS = [
     ("1.00901E+11", ["Empresas", "CONSERVADOR", "llegó truncado",
                      "no tiene portafolio internacional"]),
     ("10026419826", ["Diagnóstico del modelo", "SIN PERFIL DECLARADO",
-                     "Vencimiento proximo", "vence en 7 dias"]),
+                     "Vencimiento próximo", "vence en 7 días"]),
 ]
 
 

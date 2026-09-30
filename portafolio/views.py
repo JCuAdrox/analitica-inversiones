@@ -197,7 +197,7 @@ def modelo(request):
         hover_name="id_cliente",
         hover_data={"perfil_declarado": True, "perfil_inferido": True, "tamano": False},
         labels={"pct_internacional": "% del portafolio en el exterior",
-                "riesgo_mercado": "Riesgo de mercado (volatilidad anual %, sin TRM)",
+                "riesgo_mercado": "Riesgo de mercado (% anual, sin TRM)",
                 "segmento": "Segmento", "perfil_declarado": "Perfil declarado",
                 "perfil_inferido": "Perfil inferido"},
         title="Mapa de segmentos (tamaño del punto según el valor del portafolio)",
@@ -241,7 +241,7 @@ def modelo(request):
         "segmentos": [
             {"nombre": s["segmento"], "clientes": s["clientes"], "riesgo": _fmt(s["riesgo"], 1),
              "pct_intl": _fmt(s["pct_intl"], 1), "hhi": _fmt(s["hhi"], 2),
-             "total": _fmt(s["total_cop"] / 1e6), "oportunidades": s["oportunidades"]}
+             "total": _fmt(s["total_cop"] / 1e6),  "oportunidades": int(s["oportunidades"])}
             for s in segmentos
         ],
         "tipos": sorted({o["tipo"] for o in oportunidades}),

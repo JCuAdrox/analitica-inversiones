@@ -1,6 +1,11 @@
-/* oportunidades comerciales por cliente.
+/*  oportunidades comerciales por cliente.
    Depende de stg.perfil_cliente (06), stg.features_cliente, stg.segmento_cliente
    y del portafolio internacional actual */
+
+
+CREATE OR REPLACE FUNCTION stg.fmt_dec(x double precision, d integer)
+RETURNS text LANGUAGE sql IMMUTABLE AS
+$$ SELECT replace(round(x::numeric, d)::text, '.', ',') $$;
 
 CREATE OR REPLACE VIEW stg.oportunidades AS
 WITH base AS (
@@ -25,43 +30,44 @@ todas AS (
            CASE WHEN total_cop >= 1e9 THEN 1 WHEN total_cop >= 1e8 THEN 2 ELSE 3 END AS prioridad
     FROM base WHERE coherencia = 'SIN PERFIL DECLARADO'
 
-    UNION ALL /* 2. Idoneidad: asume mas riesgo del declarado */
+    UNION ALL /* 2. Idoneidad: asume más riesgo del declarado */
     SELECT id_cliente, 'Revisar idoneidad', total_cop,
            'Perfil ' || perfil_declarado || ' con riesgo de mercado de '
-           || ROUND(riesgo_mercado::numeric, 1) || ' %, propio de un perfil ' || perfil_inferido,
+           || stg.fmt_dec(riesgo_mercado, 1) || ' %, propio de un perfil ' || perfil_inferido,
            1
     FROM base WHERE coherencia = 'MAS RIESGO QUE SU PERFIL'
 
     UNION ALL /* 3. Capacidad de riesgo sin usar */
     SELECT id_cliente, 'Capacidad de riesgo sin usar', total_cop,
            'Perfil ' || perfil_declarado || ' con portafolio de riesgo '
-           || perfil_inferido || ' (' || ROUND(riesgo_mercado::numeric, 1)
+           || perfil_inferido || ' (' || stg.fmt_dec(riesgo_mercado, 1)
            || ' %). Proponer productos acordes a su perfil',
            CASE WHEN total_cop >= 1e9 THEN 1 ELSE 2 END
     FROM base WHERE coherencia = 'MENOS RIESGO QUE SU PERFIL'
 
-    UNION ALL /* 4. Vencimientos proximos: reinversion */
-    SELECT id_cliente, 'Vencimiento proximo', valor_cop,
-           nombre_activo || ' vence en ' || dias || ' dias',
+    UNION ALL /* 4. Vencimientos próximos: reinversión */
+    SELECT id_cliente, 'Vencimiento próximo', valor_cop,
+           nombre_activo || ' vence en ' || dias || ' días',
            CASE WHEN dias <= 90 THEN 1 ELSE 2 END
     FROM venc
 
-    UNION ALL /* 5. Concentracion alta */
-    SELECT id_cliente, 'Concentracion alta', total_cop,
-           'Indice de concentracion HHI de ' || ROUND(hhi::numeric, 2)
-           || ' en ' || n_posiciones || ' posicion(es)',
+    UNION ALL /* 5. Concentración alta */
+    SELECT id_cliente, 'Concentración alta', total_cop,
+           'Índice de concentración HHI de ' || stg.fmt_dec(hhi, 2)
+           || ' en ' || n_posiciones
+           || CASE WHEN n_posiciones = 1 THEN ' posición' ELSE ' posiciones' END,
            CASE WHEN total_cop >= 1e8 THEN 2 ELSE 3 END
     FROM base WHERE hhi >= 0.6
 
     UNION ALL /* 6. Liquidez ociosa */
     SELECT id_cliente, 'Liquidez ociosa', ROUND(total_cop * pct_liquidez / 100),
-           ROUND(pct_liquidez::numeric, 1) || ' % del portafolio en liquidez',
+           stg.fmt_dec(pct_liquidez, 1) || ' % del portafolio en liquidez',
            CASE WHEN total_cop * pct_liquidez / 100 >= 1e8 THEN 2 ELSE 3 END
     FROM base WHERE pct_liquidez >= 20
 
-    UNION ALL /* 7. Baja diversificacion internacional (solo IDs completos, los truncados no se cruzan) */
-    SELECT id_cliente, 'Diversificacion internacional', total_cop,
-           'Solo ' || ROUND(pct_internacional::numeric, 1)
+    UNION ALL /* 7. Baja diversificación internacional (solo IDs completos, los truncados no se cruzan) */
+    SELECT id_cliente, 'Diversificación internacional', total_cop,
+           'Solo ' || stg.fmt_dec(pct_internacional, 1)
            || ' % en el exterior con un portafolio relevante',
            2
     FROM base
@@ -69,8 +75,8 @@ todas AS (
 
     UNION ALL /* 8. Calidad de datos: posiciones sin identificar */
     SELECT id_cliente, 'Posiciones sin identificar', ROUND(total_cop * pct_sin_identificar / 100),
-           ROUND(pct_sin_identificar::numeric, 1)
-           || ' % del portafolio sin codigo de activo o fuera del catalogo',
+           stg.fmt_dec(pct_sin_identificar, 1)
+           || ' % del portafolio sin código de activo o fuera del catálogo',
            CASE WHEN total_cop * pct_sin_identificar / 100 >= 1e8 THEN 2 ELSE 3 END
     FROM base WHERE pct_sin_identificar > 0
 )
