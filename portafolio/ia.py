@@ -20,7 +20,7 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 TIMEOUT = 180
 
-VERSION_PROMPT = 3
+VERSION_PROMPT = 5
 
 INSTRUCCIONES = """Eres un asistente para gerentes comerciales de inversión de Valores Bancolombia.
 Redactas un resumen ejecutivo de UN cliente usando ÚNICAMENTE los datos que se te entregan.
@@ -34,7 +34,10 @@ Reglas obligatorias:
 6. Usa exactamente dos secciones, cada título en su propia línea y en mayúsculas:
 SITUACIÓN y ALERTAS. En ALERTAS resume en dos o tres frases los riesgos y temas
 urgentes, empezando por lo de prioridad ALTA. No copies la lista de oportunidades
-ni uses corchetes: el sistema la agrega después. Texto plano, sin markdown."""
+ni uses corchetes: el sistema la agrega después. Texto plano, sin markdown.
+7. La comparación entre el riesgo del portafolio y el perfil declarado ya viene
+escrita en los datos: úsala tal cual, sin cambiar su sentido.
+8. Llama urgente solo a lo que tenga prioridad ALTA."""
 
 GLOSARIO = ("Glosario: CDT es un Certificado de Depósito a Término, emitido por bancos. "
             "FIC es un Fondo de Inversión Colectiva. HHI es un índice de concentración "
@@ -42,6 +45,16 @@ GLOSARIO = ("Glosario: CDT es un Certificado de Depósito a Término, emitido po
             "Nota estructurada: producto cuyo rendimiento está ligado a índices bursátiles. "
             "El nivel de riesgo inferido describe el portafolio, no la tolerancia al riesgo "
             "del cliente, que solo se define con el perfilamiento.")            
+
+COMPARACION = {
+    "SIN PERFIL DECLARADO": "El cliente no tiene perfil de riesgo declarado, así que no hay "
+                            "comparación posible: el perfilamiento está pendiente.",
+    "MAS RIESGO QUE SU PERFIL": "El portafolio tiene MÁS riesgo del que corresponde a su perfil "
+                                "declarado {declarado}.",
+    "MENOS RIESGO QUE SU PERFIL": "El portafolio tiene MENOS riesgo del que permite su perfil "
+                                  "declarado {declarado}.",
+    "COHERENTE": "El nivel de riesgo del portafolio es coherente con su perfil declarado {declarado}.",
+}
 
 ACCIONES = {
     "Vencimiento próximo": "Preparar la propuesta de reinversión",
@@ -136,8 +149,9 @@ def hechos_cliente(id_cliente):
 
     if m:
         lineas.append(f"Segmento del modelo: {m['segmento'] or 'no disponible'}.")
-        lineas.append(f"Nivel de riesgo del portafolio, inferido por el modelo: {m['perfil_inferido']}. "
-                      f"Coherencia con el perfil declarado: {m['coherencia']}.")
+        lineas.append(f"Nivel de riesgo del portafolio, inferido por el modelo: {m['perfil_inferido']}.")
+        comparacion = COMPARACION.get(m["coherencia"], m["coherencia"])
+        lineas.append("Comparación: " + comparacion.format(declarado=m["perfil_declarado"]))
         lineas.append(f"Riesgo de mercado: {_fmt(m['riesgo_mercado'], 1)} % anual sin efecto cambiario; "
                       f"{_fmt(m['riesgo_total_con_fx'], 1)} % con efecto de la TRM.")
         if m["confianza_dato"] == "BAJA":
@@ -234,6 +248,7 @@ def generar_resumen(id_cliente):
 
     # si el modelo escribe pasos por su cuenta, se descartan: esa seccion la arma el sistema
     texto = re.split(r"\n\s*PR[OÓ]XIMOS PASOS", texto, flags=re.IGNORECASE)[0].strip()
+    texto = re.sub(r"\[(ALTA|MEDIA|BAJA)\]\s*", "", texto)
     resultado = {
         "ok": True,
         "texto": texto + "\n\n" + proximos_pasos(oportunidades),
