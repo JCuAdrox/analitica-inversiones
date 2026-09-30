@@ -20,20 +20,37 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 TIMEOUT = 180
 
+VERSION_PROMPT = 2
+
 INSTRUCCIONES = """Eres un asistente para gerentes comerciales de inversión de Valores Bancolombia.
 Redactas un resumen ejecutivo de UN cliente usando ÚNICAMENTE los datos que se te entregan.
 Reglas obligatorias:
 1. No inventes cifras, productos, fechas ni hechos que no estén en los datos.
-2. Copia las cifras exactamente como aparecen en los datos, sin recalcularlas ni redondearlas.
+2. Copia las cifras exactamente como aparecen en los datos, sin recalcularlas.
 3. Si un dato no está, no lo menciones ni lo supongas.
-4. En PRÓXIMOS PASOS usa solo las oportunidades listadas, en orden de prioridad.
-5. Escribe en español de Colombia, con tono profesional y claro. Máximo 170 palabras.
-6. Usa exactamente tres secciones, cada titulo en su propia linea y en mayusculas:
-SITUACIÓN, ALERTAS, PRÓXIMOS PASOS. Texto plano, sin markdown ni asteriscos."""
+4. No recomiendes productos, inversiones ni acciones concretas: los próximos pasos
+   los agrega el sistema a partir de reglas, y la decisión es del gerente.
+5. Escribe en español de Colombia, con tono profesional y claro. Máximo 130 palabras.
+6. Usa exactamente dos secciones, cada título en su propia línea y en mayúsculas:
+SITUACIÓN y ALERTAS. En ALERTAS menciona las alertas y oportunidades de los datos,
+empezando por las de prioridad ALTA. Texto plano, sin markdown ni asteriscos."""
 
 GLOSARIO = ("Glosario: CDT es un Certificado de Depósito a Término, emitido por bancos. "
             "FIC es un Fondo de Inversión Colectiva. HHI es un índice de concentración "
-            "(1 significa todo en una sola posición). TRM es la tasa de cambio peso dólar.")
+            "(1 significa todo en una sola posición). TRM es la tasa de cambio peso dólar. "
+            "Nota estructurada: producto cuyo rendimiento está ligado a índices bursátiles.")
+
+ACCIONES = {
+    "Vencimiento próximo": "Preparar la propuesta de reinversión",
+    "Revisar idoneidad": "Revisar la idoneidad del portafolio frente al perfil declarado",
+    "Perfilamiento pendiente": "Completar el perfilamiento de riesgo del cliente",
+    "Capacidad de riesgo sin usar": "Presentar alternativas acordes a su perfil declarado",
+    "Diversificación internacional": "Evaluar con el cliente alternativas de diversificación internacional",
+    "Liquidez ociosa": "Revisar con el cliente el destino de la liquidez",
+    "Concentración alta": "Revisar la concentración del portafolio",
+    "Posiciones sin identificar": "Corregir en las fuentes de datos las posiciones sin identificar",
+}
+ORDEN = {"ALTA": 1, "MEDIA": 2, "BAJA": 3}
 
 
 def _fmt(numero, decimales=0):
@@ -64,8 +81,26 @@ def _composicion(filas):
     return ", ".join(f"{f['clase']} {_fmt(f['pct'], 1)} %" for f in filas) or "sin datos"
 
 
+def _ordenar(oportunidades):
+    """Por prioridad; dentro de la misma prioridad, primero lo que tiene fecha limite."""
+    return sorted(oportunidades, key=lambda o: (
+        ORDEN.get(o["prioridad"], 9), o["tipo"] != "Vencimiento próximo", -(o["monto_cop"] or 0)))
+
+
+def proximos_pasos(oportunidades):
+    """Seccion armada por reglas, no por el modelo: cada paso sale de una oportunidad."""
+    if not oportunidades:
+        return "PRÓXIMOS PASOS\nSin oportunidades detectadas: mantener el seguimiento habitual."
+    lineas = ["PRÓXIMOS PASOS"]
+    for i, o in enumerate(oportunidades, 1):
+        accion = ACCIONES.get(o["tipo"], o["tipo"])
+        lineas.append(f"{i}. [{o['prioridad']}] {accion}. {o['detalle']}.")
+    return "\n".join(lineas)
+
+
 def hechos_cliente(id_cliente):
-    """Arma en texto los hechos del cliente. Lanza LookupError si no existe."""
+    """Arma en texto los hechos del cliente y la lista de oportunidades ordenada.
+    Lanza LookupError si el cliente no existe."""
     p = {"id_cliente": id_cliente}
     r = _seguro("resumen_cliente", p)
     if not r:
@@ -107,7 +142,7 @@ def hechos_cliente(id_cliente):
         if not m["clasificacion_estable"]:
             lineas.append("El perfil inferido cambia si se mueven los umbrales: tomarlo como indicativo.")
 
-    oportunidades = _seguro("oportunidades_cliente", p)
+    oportunidades = _ordenar(_seguro("oportunidades_cliente", p))
     if oportunidades:
         lineas.append(f"Oportunidades detectadas ({len(oportunidades)}):")
         for o in oportunidades:
@@ -117,18 +152,41 @@ def hechos_cliente(id_cliente):
         lineas.append("Oportunidades detectadas: ninguna.")
 
     lineas.append(GLOSARIO)
-    return "\n".join(lineas)
+    return "\n".join(lineas), oportunidades
 
 
 NUMERO = re.compile(r"\d[\d.,]*\d|\d")
 
 
+def _a_numero(token):
+    """Convierte un numero en formato colombiano a (valor, decimales). None si no se puede."""
+    t = token.strip(".,")
+    try:
+        if "," in t:
+            entero, _, dec = t.rpartition(",")
+            return float(entero.replace(".", "") + "." + dec), len(dec)
+        if re.fullmatch(r"\d{1,3}(\.\d{3})+", t):
+            return float(t.replace(".", "")), 0
+        return float(t), len(t.split(".")[1]) if "." in t else 0
+    except ValueError:
+        return None, 0
+
+
 def cifras_no_verificadas(texto, hechos):
-    """Numeros del texto generado (de 2 o mas digitos) que no aparecen en los hechos."""
+    """Numeros del texto (de 2 o mas digitos) que no estan en los hechos, ni tal cual
+    ni como redondeo de alguna cifra de los hechos (por ejemplo 100,0 escrito como 100)."""
     solo_digitos = lambda s: re.sub(r"\D", "", s)
-    base = {solo_digitos(n) for n in NUMERO.findall(hechos)}
-    fuera = {n.strip(".,") for n in NUMERO.findall(texto)
-             if len(solo_digitos(n)) >= 2 and solo_digitos(n) not in base}
+    fichas = NUMERO.findall(hechos)
+    base_txt = {solo_digitos(n) for n in fichas}
+    base_num = [v for v, _ in map(_a_numero, fichas) if v is not None]
+    fuera = set()
+    for n in NUMERO.findall(texto):
+        if len(solo_digitos(n)) < 2 or solo_digitos(n) in base_txt:
+            continue
+        valor, dec = _a_numero(n)
+        if valor is not None and any(round(b, dec) == valor for b in base_num):
+            continue
+        fuera.add(n.strip(".,"))
     return sorted(fuera)
 
 
@@ -150,8 +208,9 @@ def _llamar_ollama(hechos):
 
 def generar_resumen(id_cliente):
     """Devuelve un dict listo para JSON con el resumen o con el motivo del error."""
-    hechos = hechos_cliente(id_cliente)
-    clave = "ia:" + hashlib.sha256(f"{OLLAMA_MODEL}|{hechos}".encode("utf-8")).hexdigest()
+    hechos, oportunidades = hechos_cliente(id_cliente)
+    firma = f"{VERSION_PROMPT}|{OLLAMA_MODEL}|{hechos}"
+    clave = "ia:" + hashlib.sha256(firma.encode("utf-8")).hexdigest()
     guardado = cache.get(clave)
     if guardado:
         return {**guardado, "desde_cache": True}
@@ -170,9 +229,11 @@ def generar_resumen(id_cliente):
                 "error": f"No se pudo conectar con Ollama en {OLLAMA_URL}. Verifica que esté "
                          f"instalado y corriendo. El resto de la app funciona sin IA. ({e})"}
 
+    # si el modelo escribe pasos por su cuenta, se descartan: esa seccion la arma el sistema
+    texto = re.split(r"\n\s*PR[OÓ]XIMOS PASOS", texto, flags=re.IGNORECASE)[0].strip()
     resultado = {
         "ok": True,
-        "texto": texto,
+        "texto": texto + "\n\n" + proximos_pasos(oportunidades),
         "modelo": OLLAMA_MODEL,
         "segundos": round(time.perf_counter() - inicio, 1),
         "cifras_no_verificadas": cifras_no_verificadas(texto, hechos),
