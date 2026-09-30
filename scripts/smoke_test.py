@@ -26,6 +26,8 @@ CASOS = [
     ("10032184607", ["MODERADO", "94,5 %", "SIN CATALOGO", "SIN CODIGO"]),
     ("1.00901E+11", ["Empresas", "CONSERVADOR", "llegó truncado",
                      "no tiene portafolio internacional"]),
+    ("10026419826", ["Diagnóstico del modelo", "SIN PERFIL DECLARADO",
+                     "Vencimiento proximo", "vence en 7 dias"]),
 ]
 
 
@@ -48,6 +50,13 @@ def main():
             fallos += not ok
             print(("OK   " if ok else "FALLO"), id_cliente, "contiene:", t)
 
+    resp = cliente.get("/modelo/")
+    html = resp.content.decode()
+    for t in ["Segmentos de clientes", "Oportunidades priorizadas",
+              "Perfilamiento pendiente", "Revisar idoneidad"]:
+        ok = resp.status_code == 200 and t in html
+        fallos += not ok
+        print(("OK   " if ok else "FALLO"), "/modelo/ contiene:", t)    
     resp = cliente.get("/", {"id_cliente": "' OR 1=1 --"})
     ok = resp.status_code == 200
     fallos += not ok

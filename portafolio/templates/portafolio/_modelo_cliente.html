@@ -1,0 +1,27 @@
+<h2>Diagnóstico del modelo</h2>
+{% if modelo %}
+  <div class="kpis">
+    <div class="kpi"><span>Segmento</span><strong style="font-size:15px">{{ modelo.segmento }}</strong></div>
+    <div class="kpi"><span>Perfil declarado / inferido</span><strong>{{ modelo.perfil_declarado }} / {{ modelo.perfil_inferido }}</strong></div>
+    <div class="kpi"><span>Riesgo de mercado (sin TRM)</span><strong>{{ modelo.riesgo }} %</strong></div>
+    <div class="kpi"><span>Riesgo total (con TRM)</span><strong>{{ modelo.riesgo_fx }} %</strong></div>
+    <div class="kpi"><span>Confianza del dato</span><strong>{{ modelo.confianza }}</strong></div>
+  </div>
+  <div class="card">
+    <strong>{{ modelo.coherencia }}.</strong> {{ modelo.accion }}.
+    {% if not modelo.estable %}<div class="nota">El perfil inferido cambia si se mueven los umbrales de riesgo: tomarlo como indicativo.</div>{% endif %}
+    {% if modelo.confianza == "BAJA" %}<div class="nota">El riesgo de este portafolio se apoya sobre todo en supuestos por clase de activo (CDT y fondos locales), no en series de mercado.</div>{% endif %}
+    {% if oport_cliente %}
+      <table style="margin-top:12px">
+        <tr><th>Prioridad</th><th>Oportunidad</th><th class="num">Monto (COP)</th><th>Detalle</th></tr>
+        {% for o in oport_cliente %}
+          <tr><td><span class="etq {{ o.prioridad }}">{{ o.prioridad }}</span></td><td>{{ o.tipo }}</td><td class="num">{{ o.monto }}</td><td>{{ o.detalle }}</td></tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <div class="nota">Sin oportunidades detectadas para este cliente.</div>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="aviso">El modelo aún no se ha ejecutado. Corre <code>python modelo/pipeline.py</code> y <code>python manage.py cargar_consultas</code>.</div>
+{% endif %}

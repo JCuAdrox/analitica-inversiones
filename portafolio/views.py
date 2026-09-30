@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from django.shortcuts import render
-
+from django.db import DatabaseError
+from .models import ConsultaSQL
 from . import servicios
 
 
@@ -106,7 +108,7 @@ def dashboard(request):
             for f in cop_det
         ],
     }
-
+    contexto.update(contexto_modelo_cliente(seleccionado))
     if tiene_usd:
         usd_tipo = servicios.ejecutar("usd_por_tipo", params)
         usd_det = servicios.ejecutar("usd_detalle", params)
@@ -141,3 +143,133 @@ def dashboard(request):
         )
 
     return render(request, "portafolio/dashboard.html", contexto)
+
+ORDEN_DECLARADO = ["CONSERVADOR", "MODERADO", "AGRESIVO", "SIN DEFINIR", "SIN INFORMACION"]
+ORDEN_INFERIDO = ["CONSERVADOR", "MODERADO", "AGRESIVO"]
+COLOR_PRIORIDAD = {"ALTA": "#c0392b", "MEDIA": "#e0a800", "BAJA": "#7f8c8d"}
+
+
+def _intentar(slug, params=None):
+    """Ejecuta una consulta del modelo. Devuelve None si el modelo aun no se ha ejecutado."""
+    try:
+        return servicios.ejecutar(slug, params)
+    except (DatabaseError, ConsultaSQL.DoesNotExist):
+        return None
+
+
+def _filas_oportunidades(filas):
+    return [
+        {
+            "id_cliente": o["id_cliente"],
+            "segmento": o.get("segmento") or "N/D",
+            "tipo": o["tipo"],
+            "prioridad": o["prioridad"],
+            "monto": _fmt(o["monto_cop"]),
+            "detalle": o["detalle"],
+        }
+        for o in filas
+    ]
+
+
+def modelo(request):
+    clientes = _intentar("modelo_clientes")
+    if not clientes:
+        return render(request, "portafolio/modelo.html", {"sin_modelo": True})
+
+    df = pd.DataFrame(clientes)
+    segmentos = _intentar("modelo_segmentos") or []
+    oportunidades = _intentar("oportunidades") or []
+    op = pd.DataFrame(oportunidades)
+
+    kpis = [
+        ("Clientes analizados", str(len(df))),
+        ("Sin perfil declarado", str(int((df.coherencia == "SIN PERFIL DECLARADO").sum()))),
+        ("Perfil incoherente", str(int(df.coherencia.isin(
+            ["MAS RIESGO QUE SU PERFIL", "MENOS RIESGO QUE SU PERFIL"]).sum()))),
+        ("Oportunidades", str(len(op))),
+        ("Prioridad alta", str(int((op.prioridad == "ALTA").sum())) if len(op) else "0"),
+    ]
+
+    # mapa de segmentos con ejes interpretables
+    df["tamano"] = np.log10(df.total_cop.astype(float).clip(lower=10))
+    fig = px.scatter(
+        df, x="pct_internacional", y="riesgo_mercado", color="segmento", size="tamano",
+        hover_name="id_cliente",
+        hover_data={"perfil_declarado": True, "perfil_inferido": True, "tamano": False},
+        labels={"pct_internacional": "% del portafolio en el exterior",
+                "riesgo_mercado": "Riesgo de mercado (volatilidad anual %, sin TRM)",
+                "segmento": "Segmento", "perfil_declarado": "Perfil declarado",
+                "perfil_inferido": "Perfil inferido"},
+        title="Mapa de segmentos (tamaño del punto según el valor del portafolio)",
+    )
+    fig.update_layout(legend=dict(orientation="h", y=-0.25))
+    graf_segmentos = _html(fig, True)
+
+    # matriz perfil declarado frente a perfil inferido
+    cruce = (pd.crosstab(df.perfil_declarado, df.perfil_inferido)
+             .reindex(index=ORDEN_DECLARADO, columns=ORDEN_INFERIDO, fill_value=0))
+    fig = px.imshow(
+        cruce, text_auto=True, color_continuous_scale="Blues", aspect="auto",
+        labels=dict(x="Perfil inferido por el modelo", y="Perfil declarado", color="Clientes"),
+        title="Perfil declarado frente a perfil inferido",
+    )
+    graf_coherencia = _html(fig, False)
+
+    # oportunidades por tipo y prioridad
+    graf_oportunidades = None
+    if len(op):
+        conteo = op.groupby(["tipo", "prioridad"]).size().reset_index(name="casos")
+        fig = px.bar(
+            conteo, x="casos", y="tipo", color="prioridad", orientation="h",
+            color_discrete_map=COLOR_PRIORIDAD,
+            category_orders={"prioridad": ["ALTA", "MEDIA", "BAJA"]},
+            labels={"casos": "Casos", "tipo": "", "prioridad": "Prioridad"},
+            title="Oportunidades por tipo y prioridad",
+        )
+        graf_oportunidades = _html(fig, False)
+
+    tipo = request.GET.get("tipo", "")
+    prioridad = request.GET.get("prioridad", "")
+    filtradas = [o for o in oportunidades
+                 if (not tipo or o["tipo"] == tipo) and (not prioridad or o["prioridad"] == prioridad)]
+
+    contexto = {
+        "kpis": kpis,
+        "graf_segmentos": graf_segmentos,
+        "graf_coherencia": graf_coherencia,
+        "graf_oportunidades": graf_oportunidades,
+        "segmentos": [
+            {"nombre": s["segmento"], "clientes": s["clientes"], "riesgo": _fmt(s["riesgo"], 1),
+             "pct_intl": _fmt(s["pct_intl"], 1), "hhi": _fmt(s["hhi"], 2),
+             "total": _fmt(s["total_cop"] / 1e6), "oportunidades": s["oportunidades"]}
+            for s in segmentos
+        ],
+        "tipos": sorted({o["tipo"] for o in oportunidades}),
+        "tipo": tipo,
+        "prioridad": prioridad,
+        "oportunidades": _filas_oportunidades(filtradas),
+    }
+    return render(request, "portafolio/modelo.html", contexto)
+
+
+def contexto_modelo_cliente(id_cliente):
+    """Datos del modelo para la ficha de un cliente. Se usa desde dashboard."""
+    params = {"id_cliente": id_cliente}
+    m = _intentar("modelo_cliente", params)
+    if not m:
+        return {"modelo": None}
+    m = m[0]
+    return {
+        "modelo": {
+            "segmento": m["segmento"] or "N/D",
+            "perfil_declarado": m["perfil_declarado"],
+            "perfil_inferido": m["perfil_inferido"],
+            "coherencia": m["coherencia"],
+            "accion": m["accion_sugerida"],
+            "riesgo": _fmt(m["riesgo_mercado"], 1),
+            "riesgo_fx": _fmt(m["riesgo_total_con_fx"], 1),
+            "confianza": m["confianza_dato"],
+            "estable": m["clasificacion_estable"],
+        },
+        "oport_cliente": _filas_oportunidades(_intentar("oportunidades_cliente", params) or []),
+    }

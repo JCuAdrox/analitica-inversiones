@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Analítica de inversiones{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6f8; color: #1b2733; }
+    header { background: #1b2733; color: #fff; padding: 14px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    header small { opacity: .7; }
+    nav a { color: #fff; text-decoration: none; margin-left: 18px; padding-bottom: 3px; opacity: .75; }
+    nav a.activo { opacity: 1; border-bottom: 2px solid #fdda24; }
+    main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    select { padding: 8px 12px; font-size: 15px; width: 100%; max-width: 520px; }
+    .filtros select { width: auto; max-width: none; margin-right: 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+    .kpi, .card { background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .kpi span { display: block; font-size: 12px; color: #667; text-transform: uppercase; }
+    .kpi strong { font-size: 19px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { overflow-x: auto; }
+    h2 { margin: 30px 0 12px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e5e9ed; vertical-align: top; }
+    .num { text-align: right; white-space: nowrap; }
+    .aviso { background: #fff7e0; border-left: 4px solid #e0a800; padding: 10px 14px; margin-top: 16px; border-radius: 4px; }
+    .nota { font-size: 12px; color: #667; margin-top: 8px; }
+    .etq { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #fff; }
+    .ALTA { background: #c0392b; } .MEDIA { background: #e0a800; } .BAJA { background: #7f8c8d; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <strong>Analítica de inversiones</strong><br>
+      <small>{% block subtitulo %}{% endblock %}</small>
+    </div>
+    <nav>
+      <a href="{% url 'dashboard' %}" class="{% block nav_portafolio %}{% endblock %}">Portafolio por cliente</a>
+      <a href="{% url 'modelo' %}" class="{% block nav_modelo %}{% endblock %}">Modelo y oportunidades</a>
+    </nav>
+  </header>
+  <main>
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>

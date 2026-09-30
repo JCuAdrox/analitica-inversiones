@@ -1,35 +1,7 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portafolio de clientes</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6f8; color: #1b2733; }
-    header { background: #1b2733; color: #fff; padding: 16px 32px; }
-    header small { opacity: .7; }
-    main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-    select { padding: 8px 12px; font-size: 15px; width: 100%; max-width: 520px; }
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 8px; }
-    .kpi, .card { background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-    .kpi span { display: block; font-size: 12px; color: #667; text-transform: uppercase; }
-    .kpi strong { font-size: 19px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .card { overflow-x: auto; }
-    h2 { margin: 30px 0 12px; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e5e9ed; }
-    .num { text-align: right; }
-    .aviso { background: #fff7e0; border-left: 4px solid #e0a800; padding: 10px 14px; margin-top: 16px; border-radius: 4px; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  </style>
-</head>
-<body>
-  <header>
-    <strong>Analítica de inversiones</strong><br>
-    <small>Portafolio local (COP) e internacional (USD) por cliente, a la última fecha disponible</small>
-  </header>
-  <main>
+{% extends "portafolio/base.html" %}
+{% block subtitulo %}Portafolio local (COP) e internacional (USD) por cliente, a la última fecha disponible{% endblock %}
+{% block nav_portafolio %}activo{% endblock %}
+{% block contenido %}
   {% if sin_datos %}
     <div class="aviso">No hay clientes. Ejecuta primero <code>python scripts/run_sql.py</code>.</div>
   {% else %}
@@ -43,7 +15,7 @@
     </form>
 
     {% if resumen.id_tipo == "TRUNCADO" %}
-      <div class="aviso">El ID de este cliente llegó truncado por Excel (notacion científica). Se usa como identificador, pero no es posible cruzarlo con el portafolio internacional.</div>
+      <div class="aviso">El ID de este cliente llegó truncado por Excel (notación científica). Se usa como identificador, pero no es posible cruzarlo con el portafolio internacional.</div>
     {% endif %}
 
     <div class="kpis">
@@ -51,6 +23,8 @@
         <div class="kpi"><span>{{ etiqueta }}</span><strong>{{ valor }}</strong></div>
       {% endfor %}
     </div>
+
+    {% include "portafolio/_modelo_cliente.html" %}
 
     <h2>Portafolio local (COP), al {{ resumen.fecha_cop|date:"d/m/Y" }}</h2>
     <div class="grid">
@@ -84,6 +58,4 @@
       <div class="aviso">Este cliente no tiene portafolio internacional registrado.</div>
     {% endif %}
   {% endif %}
-  </main>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "portafolio/base.html" %}
+{% block titulo %}Modelo y oportunidades{% endblock %}
+{% block subtitulo %}Riesgo real, coherencia de perfiles, segmentos y oportunidades comerciales{% endblock %}
+{% block nav_modelo %}activo{% endblock %}
+{% block contenido %}
+  {% if sin_modelo %}
+    <div class="aviso">El modelo aún no se ha ejecutado. Corre <code>python modelo/pipeline.py</code> y <code>python manage.py cargar_consultas</code>.</div>
+  {% else %}
+    <div class="kpis">
+      {% for etiqueta, valor in kpis %}
+        <div class="kpi"><span>{{ etiqueta }}</span><strong>{{ valor }}</strong></div>
+      {% endfor %}
+    </div>
+
+    <h2>Segmentos de clientes</h2>
+    <div class="card">{{ graf_segmentos|safe }}</div>
+    <div class="card" style="margin-top:16px">
+      <table>
+        <tr><th>Segmento</th><th class="num">Clientes</th><th class="num">Riesgo prom. %</th><th class="num">% exterior prom.</th><th class="num">HHI prom.</th><th class="num">Valor (millones COP)</th><th class="num">Oportunidades</th></tr>
+        {% for s in segmentos %}
+          <tr><td>{{ s.nombre }}</td><td class="num">{{ s.clientes }}</td><td class="num">{{ s.riesgo }}</td><td class="num">{{ s.pct_intl }}</td><td class="num">{{ s.hhi }}</td><td class="num">{{ s.total }}</td><td class="num">{{ s.oportunidades }}</td></tr>
+        {% endfor %}
+      </table>
+      <div class="nota">Segmentación KMeans sobre riesgo de mercado, concentración, % internacional y % renta variable. El número de segmentos se elige por silueta, exigiendo al menos 5 clientes por segmento.</div>
+    </div>
+
+    <h2>Coherencia de perfiles y oportunidades</h2>
+    <div class="grid">
+      <div class="card">{{ graf_coherencia|safe }}</div>
+      <div class="card">{% if graf_oportunidades %}{{ graf_oportunidades|safe }}{% endif %}</div>
+    </div>
+    <div class="nota">Perfil inferido: riesgo de mercado menor a 5 % conservador, de 5 a 15 % moderado, desde 15 % agresivo. Umbrales supuestos, con prueba de sensibilidad.</div>
+
+    <h2>Oportunidades priorizadas</h2>
+    <form method="get" class="filtros">
+      <select name="tipo" onchange="this.form.submit()">
+        <option value="">Todos los tipos</option>
+        {% for t in tipos %}<option value="{{ t }}" {% if t == tipo %}selected{% endif %}>{{ t }}</option>{% endfor %}
+      </select>
+      <select name="prioridad" onchange="this.form.submit()">
+        <option value="">Todas las prioridades</option>
+        <option value="ALTA" {% if prioridad == "ALTA" %}selected{% endif %}>ALTA</option>
+        <option value="MEDIA" {% if prioridad == "MEDIA" %}selected{% endif %}>MEDIA</option>
+        <option value="BAJA" {% if prioridad == "BAJA" %}selected{% endif %}>BAJA</option>
+      </select>
+    </form>
+    <div class="card" style="margin-top:12px">
+      <table>
+        <tr><th>Prioridad</th><th>Cliente</th><th>Segmento</th><th>Oportunidad</th><th class="num">Monto (COP)</th><th>Detalle</th></tr>
+        {% for o in oportunidades %}
+          <tr>
+            <td><span class="etq {{ o.prioridad }}">{{ o.prioridad }}</span></td>
+            <td><a href="{% url 'dashboard' %}?id_cliente={{ o.id_cliente|urlencode }}">{{ o.id_cliente }}</a></td>
+            <td>{{ o.segmento }}</td><td>{{ o.tipo }}</td><td class="num">{{ o.monto }}</td><td>{{ o.detalle }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">No hay oportunidades con ese filtro.</td></tr>
+        {% endfor %}
+      </table>
+      <div class="nota">Un mismo cliente puede tener varias oportunidades; los montos no se deben sumar entre tipos.</div>
+    </div>
+  {% endif %}
+{% endblock %}

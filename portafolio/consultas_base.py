@@ -78,4 +78,61 @@ CONSULTAS = [
             ORDER BY valor_usd DESC
         """,
     },
+        {
+        "slug": "modelo_clientes",
+        "nombre": "Modelo: resumen por cliente",
+        "descripcion": "Perfil inferido, coherencia, segmento y oportunidades de cada cliente.",
+        "visualizacion": "tabla",
+        "sql": """
+            SELECT * FROM stg.modelo_cliente ORDER BY total_cop DESC
+        """,
+    },
+    {
+        "slug": "modelo_segmentos",
+        "nombre": "Modelo: resumen por segmento",
+        "descripcion": "Promedios y valor total de cada segmento de clientes.",
+        "visualizacion": "tabla",
+        "sql": """
+            SELECT segmento, COUNT(*) AS clientes,
+                   ROUND(AVG(riesgo_mercado)::numeric, 1)    AS riesgo,
+                   ROUND(AVG(pct_internacional)::numeric, 1) AS pct_intl,
+                   ROUND(AVG(hhi)::numeric, 2)               AS hhi,
+                   SUM(total_cop)                            AS total_cop,
+                   SUM(n_oportunidades)                      AS oportunidades
+            FROM stg.modelo_cliente
+            GROUP BY segmento
+            ORDER BY total_cop DESC
+        """,
+    },
+    {
+        "slug": "oportunidades",
+        "nombre": "Modelo: oportunidades priorizadas",
+        "descripcion": "Todas las oportunidades comerciales, por prioridad y monto.",
+        "visualizacion": "tabla",
+        "sql": """
+            SELECT * FROM stg.oportunidades
+            ORDER BY orden_prioridad, monto_cop DESC
+        """,
+    },
+    {
+        "slug": "modelo_cliente",
+        "nombre": "Modelo: diagnostico de un cliente",
+        "descripcion": "Resultado del modelo para el cliente seleccionado.",
+        "visualizacion": "tabla",
+        "sql": """
+            SELECT * FROM stg.modelo_cliente WHERE id_cliente = %(id_cliente)s
+        """,
+    },
+    {
+        "slug": "oportunidades_cliente",
+        "nombre": "Modelo: oportunidades de un cliente",
+        "descripcion": "Oportunidades del cliente seleccionado.",
+        "visualizacion": "tabla",
+        "sql": """
+            SELECT id_cliente, segmento, tipo, prioridad, monto_cop, detalle
+            FROM stg.oportunidades
+            WHERE id_cliente = %(id_cliente)s
+            ORDER BY orden_prioridad, monto_cop DESC
+        """,
+    },
 ]
