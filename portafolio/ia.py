@@ -20,7 +20,7 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 TIMEOUT = 180
 
-VERSION_PROMPT = 2
+VERSION_PROMPT = 3
 
 INSTRUCCIONES = """Eres un asistente para gerentes comerciales de inversión de Valores Bancolombia.
 Redactas un resumen ejecutivo de UN cliente usando ÚNICAMENTE los datos que se te entregan.
@@ -32,13 +32,16 @@ Reglas obligatorias:
    los agrega el sistema a partir de reglas, y la decisión es del gerente.
 5. Escribe en español de Colombia, con tono profesional y claro. Máximo 130 palabras.
 6. Usa exactamente dos secciones, cada título en su propia línea y en mayúsculas:
-SITUACIÓN y ALERTAS. En ALERTAS menciona las alertas y oportunidades de los datos,
-empezando por las de prioridad ALTA. Texto plano, sin markdown ni asteriscos."""
+SITUACIÓN y ALERTAS. En ALERTAS resume en dos o tres frases los riesgos y temas
+urgentes, empezando por lo de prioridad ALTA. No copies la lista de oportunidades
+ni uses corchetes: el sistema la agrega después. Texto plano, sin markdown."""
 
 GLOSARIO = ("Glosario: CDT es un Certificado de Depósito a Término, emitido por bancos. "
             "FIC es un Fondo de Inversión Colectiva. HHI es un índice de concentración "
             "(1 significa todo en una sola posición). TRM es la tasa de cambio peso dólar. "
-            "Nota estructurada: producto cuyo rendimiento está ligado a índices bursátiles.")
+            "Nota estructurada: producto cuyo rendimiento está ligado a índices bursátiles. "
+            "El nivel de riesgo inferido describe el portafolio, no la tolerancia al riesgo "
+            "del cliente, que solo se define con el perfilamiento.")            
 
 ACCIONES = {
     "Vencimiento próximo": "Preparar la propuesta de reinversión",
@@ -133,7 +136,7 @@ def hechos_cliente(id_cliente):
 
     if m:
         lineas.append(f"Segmento del modelo: {m['segmento'] or 'no disponible'}.")
-        lineas.append(f"Perfil inferido por el riesgo del portafolio: {m['perfil_inferido']}. "
+        lineas.append(f"Nivel de riesgo del portafolio, inferido por el modelo: {m['perfil_inferido']}. "
                       f"Coherencia con el perfil declarado: {m['coherencia']}.")
         lineas.append(f"Riesgo de mercado: {_fmt(m['riesgo_mercado'], 1)} % anual sin efecto cambiario; "
                       f"{_fmt(m['riesgo_total_con_fx'], 1)} % con efecto de la TRM.")
