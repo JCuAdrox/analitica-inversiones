@@ -82,9 +82,9 @@ def segmentar(df):
 def main():
     eng = engine_bd()
     df = pd.read_sql(
-        "SELECT p.id_cliente, p.perfil_declarado, p.riesgo_mercado, p.hhi, "
-        "p.pct_internacional, f.pct_renta_variable, p.total_cop "
-        "FROM stg.perfil_cliente p JOIN stg.features_cliente f USING (id_cliente)", eng)
+        "SELECT id_cliente, perfil_riesgo AS perfil_declarado, "
+        "vol_sin_fx_pct AS riesgo_mercado, hhi, pct_internacional, "
+        "pct_renta_variable, total_cop FROM stg.features_cliente", eng)
     res, tabla, k, iguales = segmentar(df)
 
     print("Prueba de numero de segmentos:")
