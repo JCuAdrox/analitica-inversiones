@@ -1,6 +1,6 @@
-/* 02: staging de macroactivos (COP) */
 
-/* Paso 1: normaliza texto (vacio y None pasan a NULL) y elimina duplicados exactos */
+
+/* normaliza texto (vacio y None pasan a NULL) y elimina duplicados exactos */
 CREATE OR REPLACE VIEW stg.macro_norm AS
 SELECT DISTINCT
     NULLIF(NULLIF(TRIM(ingestion_year),     ''), 'None') AS ing_year,
@@ -14,8 +14,7 @@ SELECT DISTINCT
     NULLIF(NULLIF(TRIM(cod_banca),          ''), 'None') AS cod_banca
 FROM historico_aba_macroactivos;
 
-/* Paso 2: relacion codigo de activo a macroactivo, solo si es unica.
-   Sirve para recuperar filas con macroactivo vacio */
+/* relacion codigo de activo a macroactivo, solo si es unica. */
 CREATE OR REPLACE VIEW stg.map_activo_macro AS
 SELECT cod_activo, MIN(macroactivo) AS macroactivo
 FROM stg.macro_norm
@@ -24,7 +23,7 @@ WHERE macroactivo IN ('Renta Variable', 'FICs', 'Renta Fija')
 GROUP BY cod_activo
 HAVING COUNT(DISTINCT macroactivo) = 1;
 
-/* Paso 3: convierte tipos de forma segura y calcula la fecha de la foto */
+/* convierte tipos de forma segura y calcula la fecha de la foto */
 CREATE OR REPLACE VIEW stg.macro_evaluada AS
 WITH p AS (
     SELECT n.*,
@@ -47,7 +46,7 @@ SELECT f.*,
 FROM f
 LEFT JOIN stg.map_activo_macro mm ON mm.cod_activo = f.cod_activo;
 
-/* Paso 4: diagnostico, la primera regla que falla explica el motivo */
+/*  diagnostico, la primera regla que falla explica el motivo */
 CREATE OR REPLACE VIEW stg.macro_diagnostico AS
 SELECT e.*,
     CASE
@@ -73,14 +72,13 @@ SELECT e.*,
     END AS motivo_cuarentena
 FROM stg.macro_evaluada e;
 
-/* Paso 5a: filas danadas, aparte y con su motivo */
+/* filas dañadas, aparte y con su motivo */
 CREATE OR REPLACE VIEW stg.macro_cuarentena AS
 SELECT * FROM stg.macro_diagnostico
 WHERE motivo_cuarentena IS NOT NULL;
 
-/* Paso 5b: filas limpias, tipadas y con nombre de activo.
-   Supuesto: el codigo 10007 es un typo de 1007 (Fiducuenta).
-   Para desactivarlo, borra esa linea del VALUES */
+/* filas limpias, tipadas y con nombre de activo.
+   Supuesto: el codigo 10007 es un typo de 1007 (Fiducuenta). */
 CREATE OR REPLACE VIEW stg.macro_limpio AS
 WITH b AS (
     SELECT d.*,

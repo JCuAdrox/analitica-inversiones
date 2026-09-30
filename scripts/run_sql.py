@@ -1,12 +1,13 @@
 """Ejecuta en orden todos los archivos de la carpeta sql/ sobre Postgres."""
 import os
+import sys
 from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
-SQL_DIR = ROOT / "sql"
+SQL_DIR = ROOT / (sys.argv[1] if len(sys.argv) > 1 else "sql")
 
 
 def main():

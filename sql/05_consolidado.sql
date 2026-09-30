@@ -1,4 +1,4 @@
-/* 05: consolidado por cliente (COP y USD) */
+/* consolidado por cliente (COP y USD) */
 
 /* Parametros: TRM (pesos por dolar) por fecha */
 CREATE TABLE IF NOT EXISTS stg.param_trm (

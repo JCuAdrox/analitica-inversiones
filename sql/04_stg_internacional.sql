@@ -1,15 +1,15 @@
-/* 04: staging del portafolio internacional (USD) */
+/* staging del portafolio internacional (USD) */
 
-/* Paso 1: normaliza texto. No elimina duplicados */
+/* normaliza texto. No elimina duplicados */
 CREATE OR REPLACE VIEW stg.intl_norm AS
 SELECT
     NULLIF(NULLIF(TRIM(ingestion_year),     ''), 'None') AS ing_year,
     NULLIF(NULLIF(TRIM(ingestion_month),    ''), 'None') AS ing_month,
     NULLIF(NULLIF(TRIM(ingestion_day),      ''), 'None') AS ing_day,
     NULLIF(NULLIF(TRIM(id_sistema_cliente), ''), 'None') AS id_cliente,
-    NULLIF(NULLIF(TRIM(simbol),             ''), 'None') AS simbolo,
-    NULLIF(NULLIF(TRIM(cusip),              ''), 'None') AS cusip,
-    NULLIF(NULLIF(TRIM(isin),               ''), 'None') AS isin,
+    NULLIF(NULLIF(NULLIF(TRIM(simbol), ''), 'None'), 'nan') AS simbolo,
+    NULLIF(NULLIF(NULLIF(TRIM(cusip),  ''), 'None'), 'nan') AS cusip,
+    NULLIF(NULLIF(NULLIF(TRIM(isin),   ''), 'None'), 'nan') AS isin,
     NULLIF(NULLIF(TRIM(REGEXP_REPLACE(REGEXP_REPLACE(TRIM(nombre_activo), 'ISIN#\S*', '', 'g'),
         '\s+', ' ', 'g')), ''), 'None')                  AS nombre_activo,
     NULLIF(NULLIF(TRIM(cantidad),           ''), 'None') AS cantidad,
@@ -18,7 +18,7 @@ SELECT
     NULLIF(NULLIF(TRIM(tasa_cupon),         ''), 'None') AS tasa_cupon
 FROM historico_aba_usd_internacional;
 
-/* Paso 2: tipos seguros y fechas (mes/dia/anio, 1900 es centinela) */
+/* tipos seguros y fechas (mes/dia/anio) */
 CREATE OR REPLACE VIEW stg.intl_evaluada AS
 WITH p AS (
     SELECT n.*,
@@ -48,7 +48,7 @@ SELECT f.*,
     CASE WHEN EXTRACT(MONTH FROM f.venc_calc)  = f.v_m THEN f.venc_calc  END AS fecha_venc
 FROM f;
 
-/* Paso 3: diagnostico, la primera regla que falla da el motivo */
+/* diagnostico, la primera regla que falla da el motivo */
 CREATE OR REPLACE VIEW stg.intl_diagnostico AS
 SELECT e.*,
     CASE
@@ -71,7 +71,7 @@ FROM stg.intl_evaluada e;
 CREATE OR REPLACE VIEW stg.intl_cuarentena AS
 SELECT * FROM stg.intl_diagnostico WHERE motivo_cuarentena IS NOT NULL;
 
-/* Paso 4: filas limpias con tipo de activo (regla heuristica, se afina luego) */
+/* filas limpias con tipo de activo */
 CREATE OR REPLACE VIEW stg.intl_limpio AS
 SELECT
     d.fecha,
@@ -81,10 +81,12 @@ SELECT
     d.isin,
     d.nombre_activo,
     CASE
-        WHEN d.isin = 'Liquidez'                                THEN 'Liquidez'
-        WHEN d.tasa_num > 0                                     THEN 'Renta Fija'
-        WHEN d.nombre_activo ~* '(ETF|ISHARES|SPDR|VANGUARD)'   THEN 'ETF'
-        WHEN d.simbolo IS NOT NULL                              THEN 'Accion'
+        WHEN d.isin = 'Liquidez'                                 THEN 'Liquidez'
+        WHEN d.nombre_activo ~* '\m(LKD|LNKD|LINKED|AUTOCALL)\M' THEN 'Nota estructurada'
+        WHEN d.tasa_num > 0
+          OR d.simbolo ~ '^[A-Z]+[0-9]{7}$'                      THEN 'Renta Fija'
+        WHEN d.nombre_activo ~* '(ETF|ISHARES|SPDR|VANGUARD)'    THEN 'ETF'
+        WHEN d.simbolo IS NOT NULL                               THEN 'Accion'
         ELSE 'Fondo'
     END AS tipo_activo,
     d.cantidad_num AS cantidad,
@@ -94,7 +96,7 @@ SELECT
 FROM stg.intl_diagnostico d
 WHERE d.motivo_cuarentena IS NULL;
 
-/* Paso 5: portafolio internacional (USD) en la ultima fecha de cada cliente */
+/* portafolio internacional (USD) en la ultima fecha de cada cliente */
 CREATE OR REPLACE VIEW stg.portafolio_usd_actual AS
 WITH ult AS (
     SELECT id_cliente, MAX(fecha) AS fecha

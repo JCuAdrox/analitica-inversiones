@@ -1,4 +1,4 @@
-/* 03: clientes validos y portafolio COP a la ultima fecha */
+/* clientes validos y portafolio COP a la ultima fecha */
 
 /* Un registro por cliente, con atributos vigentes y bandera de validez */
 CREATE OR REPLACE VIEW stg.dim_cliente AS
