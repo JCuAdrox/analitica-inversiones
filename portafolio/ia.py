@@ -1,0 +1,183 @@
+"""Resumen ejecutivo de un cliente con un modelo de lenguaje local (Ollama).
+
+El modelo no consulta la base ni calcula nada: solo redacta a partir de los hechos
+que arma este módulo con las mismas consultas SQL de la app."""
+import hashlib
+import json
+import os
+import re
+import time
+import urllib.error
+import urllib.request
+
+from django.core.cache import cache
+from django.db import DatabaseError
+
+from . import servicios
+from .models import ConsultaSQL
+
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+TIMEOUT = 180
+
+INSTRUCCIONES = """Eres un asistente para gerentes comerciales de inversión de Valores Bancolombia.
+Redactas un resumen ejecutivo de UN cliente usando ÚNICAMENTE los datos que se te entregan.
+Reglas obligatorias:
+1. No inventes cifras, productos, fechas ni hechos que no estén en los datos.
+2. Copia las cifras exactamente como aparecen en los datos, sin recalcularlas ni redondearlas.
+3. Si un dato no está, no lo menciones ni lo supongas.
+4. En PRÓXIMOS PASOS usa solo las oportunidades listadas, en orden de prioridad.
+5. Escribe en español de Colombia, con tono profesional y claro. Máximo 170 palabras.
+6. Usa exactamente tres secciones, cada titulo en su propia linea y en mayusculas:
+SITUACIÓN, ALERTAS, PRÓXIMOS PASOS. Texto plano, sin markdown ni asteriscos."""
+
+GLOSARIO = ("Glosario: CDT es un Certificado de Depósito a Término, emitido por bancos. "
+            "FIC es un Fondo de Inversión Colectiva. HHI es un índice de concentración "
+            "(1 significa todo en una sola posición). TRM es la tasa de cambio peso dólar.")
+
+
+def _fmt(numero, decimales=0):
+    texto = f"{numero:,.{decimales}f}"
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _pesos(valor):
+    if valor is None:
+        return "no disponible"
+    if abs(valor) >= 1e6:
+        return f"$ {_fmt(valor / 1e6, 1)} millones"
+    return f"$ {_fmt(valor)}"
+
+
+def _posiciones(n):
+    return f"{n} posición" if n == 1 else f"{n} posiciones"
+
+
+def _seguro(slug, params):
+    try:
+        return servicios.ejecutar(slug, params)
+    except (DatabaseError, ConsultaSQL.DoesNotExist):
+        return []
+
+
+def _composicion(filas):
+    return ", ".join(f"{f['clase']} {_fmt(f['pct'], 1)} %" for f in filas) or "sin datos"
+
+
+def hechos_cliente(id_cliente):
+    """Arma en texto los hechos del cliente. Lanza LookupError si no existe."""
+    p = {"id_cliente": id_cliente}
+    r = _seguro("resumen_cliente", p)
+    if not r:
+        raise LookupError(id_cliente)
+    r = r[0]
+    m = (_seguro("modelo_cliente", p) or [None])[0]
+
+    lineas = [f"Cliente: {id_cliente}"]
+    if r["id_tipo"] == "TRUNCADO":
+        lineas.append("Nota: el ID llegó truncado, no se puede cruzar con el portafolio internacional.")
+    lineas.append(f"Banca: {r['banca'] or 'no disponible'}. "
+                  f"Perfil de riesgo declarado: {r['perfil_riesgo'] or 'no disponible'}.")
+    lineas.append(f"Portafolio local (COP) al {r['fecha_cop']:%d/%m/%Y}: {_pesos(r['aba_cop'])}, "
+                  f"en {_posiciones(r['n_pos_cop'])}.")
+    lineas.append("Composición local: " + _composicion(_seguro("cop_por_clase", p)) + ".")
+
+    if r["tiene_usd"]:
+        linea = (f"Portafolio internacional (USD) al {r['fecha_usd']:%d/%m/%Y}: "
+                 f"US$ {_fmt(r['valor_usd'])}, en {_posiciones(r['n_pos_usd'])}")
+        if r.get("valor_usd_en_cop") is not None:
+            linea += f", equivalente a {_pesos(r['valor_usd_en_cop'])} con TRM de {_fmt(r['trm'], 2)}"
+        lineas.append(linea + ".")
+        lineas.append("Composición internacional: " + _composicion(_seguro("usd_por_tipo", p)) + ".")
+    else:
+        lineas.append("No tiene portafolio internacional registrado.")
+
+    lineas.append(f"Total consolidado: {_pesos(r['total_consolidado_cop'])}.")
+    if r.get("pct_internacional") is not None:
+        lineas.append(f"Exposición internacional: {_fmt(r['pct_internacional'], 1)} %.")
+
+    if m:
+        lineas.append(f"Segmento del modelo: {m['segmento'] or 'no disponible'}.")
+        lineas.append(f"Perfil inferido por el riesgo del portafolio: {m['perfil_inferido']}. "
+                      f"Coherencia con el perfil declarado: {m['coherencia']}.")
+        lineas.append(f"Riesgo de mercado: {_fmt(m['riesgo_mercado'], 1)} % anual sin efecto cambiario; "
+                      f"{_fmt(m['riesgo_total_con_fx'], 1)} % con efecto de la TRM.")
+        if m["confianza_dato"] == "BAJA":
+            lineas.append("Confianza del dato de riesgo: BAJA, se apoya en supuestos por clase de activo.")
+        if not m["clasificacion_estable"]:
+            lineas.append("El perfil inferido cambia si se mueven los umbrales: tomarlo como indicativo.")
+
+    oportunidades = _seguro("oportunidades_cliente", p)
+    if oportunidades:
+        lineas.append(f"Oportunidades detectadas ({len(oportunidades)}):")
+        for o in oportunidades:
+            lineas.append(f"[{o['prioridad']}] {o['tipo']}: {o['detalle']}. "
+                          f"Monto asociado: {_pesos(o['monto_cop'])}.")
+    else:
+        lineas.append("Oportunidades detectadas: ninguna.")
+
+    lineas.append(GLOSARIO)
+    return "\n".join(lineas)
+
+
+NUMERO = re.compile(r"\d[\d.,]*\d|\d")
+
+
+def cifras_no_verificadas(texto, hechos):
+    """Numeros del texto generado (de 2 o mas digitos) que no aparecen en los hechos."""
+    solo_digitos = lambda s: re.sub(r"\D", "", s)
+    base = {solo_digitos(n) for n in NUMERO.findall(hechos)}
+    fuera = {n.strip(".,") for n in NUMERO.findall(texto)
+             if len(solo_digitos(n)) >= 2 and solo_digitos(n) not in base}
+    return sorted(fuera)
+
+
+def _llamar_ollama(hechos):
+    cuerpo = json.dumps({
+        "model": OLLAMA_MODEL,
+        "stream": False,
+        "options": {"temperature": 0.2},
+        "messages": [
+            {"role": "system", "content": INSTRUCCIONES},
+            {"role": "user", "content": "Datos del cliente:\n" + hechos},
+        ],
+    }).encode("utf-8")
+    peticion = urllib.request.Request(
+        f"{OLLAMA_URL}/api/chat", data=cuerpo, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(peticion, timeout=TIMEOUT) as resp:
+        return json.loads(resp.read().decode("utf-8"))["message"]["content"].strip()
+
+
+def generar_resumen(id_cliente):
+    """Devuelve un dict listo para JSON con el resumen o con el motivo del error."""
+    hechos = hechos_cliente(id_cliente)
+    clave = "ia:" + hashlib.sha256(f"{OLLAMA_MODEL}|{hechos}".encode("utf-8")).hexdigest()
+    guardado = cache.get(clave)
+    if guardado:
+        return {**guardado, "desde_cache": True}
+
+    inicio = time.perf_counter()
+    try:
+        texto = _llamar_ollama(hechos)
+    except urllib.error.HTTPError as e:
+        detalle = e.read().decode("utf-8", "ignore")
+        return {"ok": False, "hechos": hechos,
+                "error": f"Ollama respondió con error ({e.code}). Verifica que el modelo "
+                         f"{OLLAMA_MODEL} esté descargado con: ollama pull {OLLAMA_MODEL}. "
+                         f"Detalle: {detalle[:200]}"}
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+        return {"ok": False, "hechos": hechos,
+                "error": f"No se pudo conectar con Ollama en {OLLAMA_URL}. Verifica que esté "
+                         f"instalado y corriendo. El resto de la app funciona sin IA. ({e})"}
+
+    resultado = {
+        "ok": True,
+        "texto": texto,
+        "modelo": OLLAMA_MODEL,
+        "segundos": round(time.perf_counter() - inicio, 1),
+        "cifras_no_verificadas": cifras_no_verificadas(texto, hechos),
+        "hechos": hechos,
+        "desde_cache": False,
+    }
+    cache.set(clave, resultado, 60 * 60 * 24)
+    return resultado

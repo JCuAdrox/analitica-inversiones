@@ -1,0 +1,60 @@
+<div class="card ia" style="margin-top:16px">
+  <strong>Resumen ejecutivo con IA</strong>
+  <span class="nota">(modelo local con Ollama; los datos no salen del equipo)</span><br>
+  <button id="ia-boton" type="button" data-cliente="{{ seleccionado }}"
+          data-url="{% url 'resumen_ia' %}" style="margin-top:10px;padding:8px 14px;cursor:pointer">
+    Generar resumen
+  </button>
+  <span id="ia-estado" class="nota"></span>
+  <div id="ia-alerta" class="aviso" hidden></div>
+  <div id="ia-texto" style="white-space:pre-wrap;margin-top:12px;line-height:1.5"></div>
+  <div id="ia-pie" class="nota" hidden></div>
+  <details id="ia-datos" hidden style="margin-top:10px">
+    <summary class="nota" style="cursor:pointer">Ver los datos exactos que recibió el modelo</summary>
+    <pre style="white-space:pre-wrap;font-size:12px;background:#f4f6f8;padding:10px;border-radius:6px"></pre>
+  </details>
+</div>
+<script>
+(function () {
+  const boton = document.getElementById("ia-boton");
+  if (!boton) return;
+  const $ = (id) => document.getElementById(id);
+  boton.addEventListener("click", async () => {
+    boton.disabled = true;
+    $("ia-estado").textContent = " Generando... la primera vez puede tardar mientras se carga el modelo.";
+    ["ia-alerta", "ia-pie", "ia-datos"].forEach((id) => ($(id).hidden = true));
+    $("ia-texto").textContent = "";
+    try {
+      const url = boton.dataset.url + "?id_cliente=" + encodeURIComponent(boton.dataset.cliente);
+      const d = await (await fetch(url)).json();
+      if (d.hechos) {
+        $("ia-datos").querySelector("pre").textContent = d.hechos;
+        $("ia-datos").hidden = false;
+      }
+      if (!d.ok) {
+        $("ia-alerta").textContent = d.error;
+        $("ia-alerta").hidden = false;
+        $("ia-estado").textContent = "";
+        return;
+      }
+      $("ia-texto").textContent = d.texto;
+      let pie = "Generado por " + d.modelo + (d.desde_cache ? " (guardado previamente)" : " en " + d.segundos + " s") +
+                ". Texto generado por IA: verifíquelo contra las cifras de la ficha.";
+      $("ia-pie").textContent = pie;
+      $("ia-pie").hidden = false;
+      if (d.cifras_no_verificadas.length) {
+        $("ia-alerta").textContent = "Atención: el texto menciona cifras que no están en los datos del cliente: " +
+          d.cifras_no_verificadas.join(", ") + ". No las tome como ciertas.";
+        $("ia-alerta").hidden = false;
+      }
+      $("ia-estado").textContent = "";
+    } catch (e) {
+      $("ia-alerta").textContent = "No se pudo generar el resumen: " + e;
+      $("ia-alerta").hidden = false;
+      $("ia-estado").textContent = "";
+    } finally {
+      boton.disabled = false;
+    }
+  });
+})();
+</script>

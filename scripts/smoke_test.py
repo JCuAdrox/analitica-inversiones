@@ -56,7 +56,13 @@ def main():
               "Perfilamiento pendiente", "Revisar idoneidad"]:
         ok = resp.status_code == 200 and t in html
         fallos += not ok
-        print(("OK   " if ok else "FALLO"), "/modelo/ contiene:", t)    
+        print(("OK   " if ok else "FALLO"), "/modelo/ contiene:", t)   
+    resp = cliente.get("/ia/resumen/", {"id_cliente": "10026419826"})
+    datos = resp.json()
+    ok = resp.status_code == 200 and "Cliente: 10026419826" in datos.get("hechos", "")
+    fallos += not ok
+    modo = "con resumen" if datos.get("ok") else "sin Ollama, responde con aviso"
+    print(("OK   " if ok else "FALLO"), f"endpoint de IA responde ({modo})") 
     resp = cliente.get("/", {"id_cliente": "' OR 1=1 --"})
     ok = resp.status_code == 200
     fallos += not ok

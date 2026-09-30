@@ -22,6 +22,7 @@
       <div class="nota">Sin oportunidades detectadas para este cliente.</div>
     {% endif %}
   </div>
+  {% include "portafolio/_ia_cliente.html" %}
 {% else %}
   <div class="aviso">El modelo aún no se ha ejecutado. Corre <code>python modelo/pipeline.py</code> y <code>python manage.py cargar_consultas</code>.</div>
 {% endif %}

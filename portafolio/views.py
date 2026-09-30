@@ -3,8 +3,10 @@ import numpy as np
 import plotly.express as px
 from django.shortcuts import render
 from django.db import DatabaseError
+from django.http import JsonResponse
 from .models import ConsultaSQL
 from . import servicios
+from . import ia
 
 
 def _fmt(numero, decimales=0):
@@ -273,3 +275,10 @@ def contexto_modelo_cliente(id_cliente):
         },
         "oport_cliente": _filas_oportunidades(_intentar("oportunidades_cliente", params) or []),
     }
+
+def resumen_ia(request):
+    """Resumen ejecutivo con IA local para un cliente. Responde JSON."""
+    try:
+        return JsonResponse(ia.generar_resumen(request.GET.get("id_cliente", "")))
+    except LookupError:
+        return JsonResponse({"ok": False, "error": "Cliente no encontrado."}, status=404)
