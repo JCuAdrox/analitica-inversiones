@@ -25,10 +25,10 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-38y2l#758r4=1g@$0zo!#w@9ijkyp-wz^a4n+1ffqn3v=y)l4*'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "solo-para-desarrollo-local-cambiar-en-produccion")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = []
 
