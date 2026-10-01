@@ -8,9 +8,13 @@ SELECT
     COUNT(DISTINCT fecha) AS n_fechas,
     MIN(fecha)            AS primera_fecha,
     MAX(fecha)            AS ultima_fecha,
-    (ARRAY_AGG(cod_banca ORDER BY fecha DESC)
+    /* los empates en la misma fecha se resuelven de forma fija para que el
+       resultado sea reproducible en cualquier equipo */
+    (ARRAY_AGG(cod_banca ORDER BY fecha DESC, cod_banca)
         FILTER (WHERE cod_banca IS NOT NULL))[1]          AS cod_banca,
-    (ARRAY_AGG(cod_perfil_riesgo ORDER BY fecha DESC)
+    /* en empate se prefiere un perfil definido sobre SIN DEFINIR (1466) */
+    (ARRAY_AGG(cod_perfil_riesgo
+               ORDER BY fecha DESC, (cod_perfil_riesgo = 1466), cod_perfil_riesgo DESC)
         FILTER (WHERE cod_perfil_riesgo IS NOT NULL))[1]  AS cod_perfil_riesgo,
     COUNT(DISTINCT fecha) >= 30                           AS es_valido
 FROM stg.macro_limpio

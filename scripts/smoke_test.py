@@ -52,7 +52,9 @@ def main():
 
     resp = cliente.get("/modelo/")
     html = resp.content.decode()
-    for t in ["Segmentos de clientes", "Oportunidades priorizadas",
+    for t in ["Sin perfil declarado</span><strong>14<", "Perfil incoherente</span><strong>9<",
+              "Oportunidades</span><strong>57<",
+              "Segmentos de clientes", "Oportunidades priorizadas",
               "Perfilamiento pendiente", "Revisar idoneidad"]:
         ok = resp.status_code == 200 and t in html
         fallos += not ok
