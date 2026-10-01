@@ -65,13 +65,23 @@ docker ps
 
 Debe aparecer un contenedor de `postgres:16` en estado `Up`.
 
-**Opción B, con PostgreSQL local.** Crea el usuario y la base con los mismos datos del `.env`:
+**Opción B, con PostgreSQL local** (versión 16 recomendada). Crea el usuario y la base con los mismos datos del `.env`. El comando para entrar como administrador depende de cómo instalaste PostgreSQL:
 
 ```bash
-psql -U postgres -c "CREATE USER analitica WITH PASSWORD 'cambia_esta_clave';"
-psql -U postgres -c "CREATE DATABASE bancolombia OWNER analitica;"
+psql -U postgres                 # Windows (instalador oficial) o Linux con contraseña
+sudo -u postgres psql            # Linux
+psql postgres                    # macOS con Homebrew o Postgres.app
 ```
-En este caso cambia `DB_PORT=5433` por `DB_PORT=5432` en el `.env`, que es el puerto habitual de una instalación local.
+
+Ya dentro de `psql`, ejecuta:
+
+```sql
+CREATE USER analitica WITH PASSWORD 'cambia_esta_clave';
+CREATE DATABASE bancolombia OWNER analitica ENCODING 'UTF8' TEMPLATE template0;
+\q
+```
+
+En Windows, si `psql` no se reconoce, abre la aplicación **SQL Shell (psql)** que instala PostgreSQL y ejecuta ahí esas dos líneas. Por último, en el `.env` cambia `DB_PORT=5433` por `DB_PORT=5432`, que es el puerto habitual de una instalación local.
 
 ### 5. Crear el entorno de Python e instalar dependencias
 
