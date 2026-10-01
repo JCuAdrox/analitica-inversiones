@@ -46,7 +46,7 @@ def _barras(filas, columna_y, columna_x, columna_pct, titulo, etiqueta_x):
 
 
 def dashboard(request):
-    clientes = servicios.ejecutar("clientes")
+    clientes = _intentar("clientes")
     if not clientes:
         return render(request, "portafolio/dashboard.html", {"sin_datos": True})
 
@@ -80,7 +80,7 @@ def dashboard(request):
             "$ " + _fmt(r["total_consolidado_cop"]),
         ),
         (
-            "Exposicion internacional",
+            "Exposición internacional",
             f'{_fmt(r["pct_internacional"], 1)} %' if tiene_usd else "0 %",
         ),
     ]

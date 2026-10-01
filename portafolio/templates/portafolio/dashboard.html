@@ -3,7 +3,7 @@
 {% block nav_portafolio %}activo{% endblock %}
 {% block contenido %}
   {% if sin_datos %}
-    <div class="aviso">No hay clientes. Ejecuta primero <code>python scripts/run_sql.py</code>.</div>
+    <div class="aviso">No hay clientes. Ejecuta primero <code>python scripts/preparar_todo.py</code>.</div>
   {% else %}
     <form method="get">
       <label for="cliente"><strong>Cliente</strong></label><br>
