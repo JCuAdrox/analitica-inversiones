@@ -71,6 +71,7 @@ Debe aparecer un contenedor de `postgres:16` en estado `Up`.
 psql -U postgres -c "CREATE USER analitica WITH PASSWORD 'cambia_esta_clave';"
 psql -U postgres -c "CREATE DATABASE bancolombia OWNER analitica;"
 ```
+En este caso cambia `DB_PORT=5433` por `DB_PORT=5432` en el `.env`, que es el puerto habitual de una instalación local.
 
 ### 5. Crear el entorno de Python e instalar dependencias
 
@@ -171,7 +172,7 @@ El modelo de lenguaje corre en el propio equipo con Ollama, así que los datos d
 
 ## Solución de problemas
 
-1. **El puerto 5432 está ocupado.** Ya hay otro PostgreSQL corriendo en el equipo. Detenlo, o usa la opción B del paso 4 con ese mismo servidor.
+1. **El puerto está ocupado.** Cambia `DB_PORT` en el `.env` por otro libre (por ejemplo 5434) y repite `docker compose up -d`.
 2. **Docker dice que no detecta la virtualización.** Activa en Windows las características "Plataforma de máquina virtual" y "Subsistema de Windows para Linux", reinicia y ejecuta `wsl --install`.
 3. **`python` no se encuentra o un script no muestra nada.** El entorno virtual no está activo: repite la activación del paso 5.
 4. **`password authentication failed`.** La clave del `.env` no coincide con la de la base. Si usas Docker y cambiaste la clave después de crear la base, recréala con `docker compose down -v` y `docker compose up -d`.
